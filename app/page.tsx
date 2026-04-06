@@ -41,9 +41,15 @@ const Navbar = () => (
         <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How it Works</a>
         <a href="#custom" className="hover:text-blue-600 transition-colors">Custom Build</a>
       </div>
-      <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-0.5">
-        Book a Demo
-      </button>
+				<a 
+					href="https://cal.com/clifford-bulya/15min"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+				<button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-0.5">
+					Book a Demo
+				</button>
+			</a>
     </div>
   </nav>
 );
