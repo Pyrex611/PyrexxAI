@@ -1,0 +1,36 @@
+# PyrexxAI
+
+> PyrexxAI is an AI voice receptionist company that deploys custom-trained
+> voice agents for MedSpas, dental clinics, and therapy practices in the US.
+> We handle inbound call answering, appointment booking (direct EMR write),
+> lead intake, and 24/7 patient communication — HIPAA-compliant.
+
+## Company
+- Founded by: Clifford Bulya
+- Headquarters: United States (Delaware incorporated)
+- Contact: hello@pyrexxai.com
+- GitHub: https://github.com/PyrexxAI
+
+## Core Service
+- Done-for-you AI voice receptionist implementation (not a SaaS tool)
+- Live in 14 days from kickoff to production
+- Integrates natively with Jane App, Mindbody, eClinicalWorks and other EMRs
+- Handles unlimited concurrent calls (zero hold times)
+- Business Associate Agreement (BAA) included with all clients
+- Pricing: $1,500 implementation + $1,000/month platform management
+
+## Target Clients
+- Medical Spas (MedSpas)
+- Dental Practices
+- Therapy and Mental Health Clinics
+
+## Key Pages
+- [Homepage](https://pyrexxai.com)
+- [AI Receptionist details](https://pyrexxai.com/ai-receptionist)
+- [HIPAA Compliance & Data Security](https://pyrexxai.com/hipaa-compliance)
+- [About the Company](https://pyrexxai.com/about)
+- [Contact PyrexxAI](https://pyrexxai.com/contact)
+
+## Full Documentation
+- [Privacy Policy](https://pyrexxai.com/privacy-policy)
+- [Terms of Service](https://pyrexxai.com/terms-of-service)

@@ -9,14 +9,14 @@ import { CAL_LINK } from "@/lib/utils";
 type Message = {
   id: string;
   role: "ai" | "user";
-  content: string; // Changed to strictly string to allow clean JSON serialization
+  content: string;
   isLink?: boolean;
 };
 
 const defaultMessage: Message = {
   id: "1",
   role: "ai",
-  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant. How can I help you modernize your clinic today?",
+  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant powered by Gemini. How can I help you modernize your clinic today?",
 };
 
 export default function AIAssistant() {
@@ -28,7 +28,6 @@ export default function AIAssistant() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load chat history from session storage on mount
   useEffect(() => {
     setMounted(true);
     const savedMessages = sessionStorage.getItem("pyrexxai-chat-history");
@@ -39,7 +38,6 @@ export default function AIAssistant() {
     }
   }, []);
 
-  // Save chat history whenever messages update
   useEffect(() => {
     if (mounted) {
       sessionStorage.setItem("pyrexxai-chat-history", JSON.stringify(messages));
@@ -54,7 +52,7 @@ export default function AIAssistant() {
     if (isOpen) scrollToBottom();
   }, [messages, isOpen, isTyping]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
@@ -64,24 +62,41 @@ export default function AIAssistant() {
       content: inputValue,
     };
 
-    setMessages((prev) => [...prev, newUserMsg]);
+    const updatedMessages = [...messages, newUserMsg];
+    setMessages(updatedMessages);
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate AI response delay
-    setTimeout(() => {
-      setIsTyping(false);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: updatedMessages }),
+      });
+
+      const data = await res.json();
+      
       const newAIMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "ai",
-        content: "That sounds like something our engineering team can help with! For the fastest response, I highly recommend scheduling a discovery call or submitting details via our contact form.",
-        isLink: true, // Flag to render links in UI
+        content: data.content,
       };
       setMessages((prev) => [...prev, newAIMsg]);
-    }, 1500);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "ai",
+          content: "I'm having trouble connecting to the server. Please schedule a discovery call to learn more!",
+          isLink: true,
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
-  // Prevent hydration mismatch by returning nothing until mounted
   if (!mounted) return null;
 
   return (
@@ -89,13 +104,15 @@ export default function AIAssistant() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="PyrexxAI Virtual Assistant"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
             className="mb-4 w-[calc(100vw-3rem)] sm:w-[380px] h-[500px] max-h-[calc(100vh-8rem)] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="bg-brand-600 text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -105,20 +122,19 @@ export default function AIAssistant() {
                   <h3 className="font-semibold text-sm">PyrexxAI Assistant</h3>
                   <div className="flex items-center space-x-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span className="text-xs text-brand-100">Online</span>
+                    <span className="text-xs text-brand-100">Live AI Agent</span>
                   </div>
                 </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
                 className="text-white/80 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-md p-1"
-                aria-label="Close chat"
+                aria-label="Close chat window"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Chat Area */}
             <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50 dark:bg-gray-900/50">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -149,14 +165,15 @@ export default function AIAssistant() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
             <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800">
               <div className="relative flex items-center">
+                <label htmlFor="chat-input" className="sr-only">Type your message to the AI assistant</label>
                 <input
+                  id="chat-input"
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask a question..."
+                  placeholder="Ask me about EMR integration..."
                   className="w-full bg-gray-100 dark:bg-gray-900 border-none text-gray-900 dark:text-white text-sm rounded-full pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
                 <button
@@ -176,7 +193,8 @@ export default function AIAssistant() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-14 h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950 relative"
-        aria-label={isOpen ? "Close assistant" : "Open assistant"}
+        aria-label={isOpen ? "Close AI Assistant" : "Open AI Assistant"}
+        aria-expanded={isOpen}
       >
         {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
         {!isOpen && (

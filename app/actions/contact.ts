@@ -8,57 +8,35 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function submitContactForm(prevState: any, formData: FormData) {
   try {
-    // Honeypot check
     const honeypot = formData.get("website") as string;
-    if (honeypot) {
-      // Silently succeed to trick the bot
-      return {
-        success: true,
-        message: "Your inquiry has been securely submitted. We will contact you shortly.",
-      };
-    }
+    if (honeypot) return { success: true, message: "Your inquiry has been securely submitted." };
 
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const clinic = formData.get("clinic") as string;
+    const practiceType = formData.get("practiceType") as string;
+    const callVolume = formData.get("callVolume") as string;
     const message = formData.get("message") as string;
 
-    if (!name || !email || !message) {
-      return {
-        success: false,
-        message: "Please fill out all required fields.",
-      };
+    if (!name || !email || !message || !clinic) {
+      return { success: false, message: "Please fill out all required fields." };
     }
 
     const { error } = await resend.emails.send({
       from: "PyrexxAI Leads <leads@pyrexxai.com>", 
       to: ["hello@pyrexxai.com"], 
-      subject: `New AI Integration Inquiry from ${clinic || name}`,
-      react: React.createElement(ContactTemplate, {
-        name,
-        email,
-        clinic,
-        message,
-      }),
+      subject: `New AI Lead: ${clinic} (${practiceType})`,
+      react: React.createElement(ContactTemplate, { name, email, clinic, practiceType, callVolume, message }),
     });
 
     if (error) {
       console.error("Resend API Error:", error);
-      return {
-        success: false,
-        message: "Failed to send the message. Please try again later.",
-      };
+      return { success: false, message: "Failed to send the message. Please try again later." };
     }
 
-    return {
-      success: true,
-      message: "Your inquiry has been securely submitted. We will contact you shortly.",
-    };
+    return { success: true, message: "Your inquiry has been securely submitted. We will contact you shortly." };
   } catch (err) {
     console.error("Server Action Error:", err);
-    return {
-      success: false,
-      message: "An unexpected error occurred.",
-    };
+    return { success: false, message: "An unexpected error occurred." };
   }
 }
