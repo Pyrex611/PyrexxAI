@@ -29,12 +29,34 @@ export async function POST(req: Request) {
       systemInstruction: SYSTEM_PROMPT 
     });
 
-    const history = messages.slice(0, -1).map((msg: any) => ({
-      role: msg.role === "ai" ? "model" : "user",
-      parts: [{ text: msg.content }],
-    }));
+    // 1. Remove the initial hardcoded AI greeting from the history context (id: "1")
+    const rawHistory = messages.slice(0, -1).filter((msg: any) => msg.id !== "1");
 
-    const chat = model.startChat({ history });
+    // 2. Format history and ensure alternating user/model sequence
+    let formattedHistory: { role: string; parts: { text: string }[] }[] = [];
+    let lastRole = "";
+
+    for (const msg of rawHistory) {
+      const currentRole = msg.role === "ai" ? "model" : "user";
+      
+      if (currentRole === lastRole) {
+        // Gemini strictly requires alternating roles. Combine sequential messages from the same role.
+        formattedHistory[formattedHistory.length - 1].parts[0].text += `\n${msg.content}`;
+      } else {
+        formattedHistory.push({
+          role: currentRole,
+          parts: [{ text: msg.content }]
+        });
+        lastRole = currentRole;
+      }
+    }
+
+    // 3. Ensure the absolute first message in the history array is a "user" message
+    if (formattedHistory.length > 0 && formattedHistory[0].role === "model") {
+      formattedHistory.shift();
+    }
+
+    const chat = model.startChat({ history: formattedHistory });
     const latestMessage = messages[messages.length - 1].content;
 
     const result = await chat.sendMessage(latestMessage);
