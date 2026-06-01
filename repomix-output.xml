@@ -40,17 +40,26 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
+.github/workflows/deploy.yml
+.github/workflows/nextjs.yml
 .gitignore
+app/about/page.tsx
 app/actions/contact.ts
 app/ai-receptionist/page.tsx
 app/contact/page.tsx
+app/error.tsx
 app/globals.css
 app/hipaa-compliance/page.tsx
 app/layout.tsx
+app/not-found.tsx
 app/page.tsx
+app/privacy-policy/page.tsx
 app/robots.ts
 app/sitemap.ts
+app/terms-of-service/page.tsx
+components/AIAssistant.tsx
 components/ContactForm.tsx
+components/CookieBanner.tsx
 components/CTA.tsx
 components/CustomPositioning.tsx
 components/emails/ContactTemplate.tsx
@@ -62,18 +71,24 @@ components/Navbar.tsx
 components/Offerings.tsx
 components/Results.tsx
 components/ROICalculator.tsx
-components/SocialProof.tsx
 components/StatsBar.tsx
+components/ThemeProvider.tsx
+components/ThemeToggle.tsx
 components/TrustHIPAA.tsx
 lib/utils.ts
 LICENSE
-middleware.ts
 next-env.d.ts
 next.config.js
 package.json
 postcss.config.js
+public/.nojekyll
+public/apple-touch-icon.png
+public/favicon-96x96.png
+public/favicon.ico
 public/logo.png
-public/sitemap.xml
+public/site.webmanifest
+public/web-app-manifest-192x192.png
+public/web-app-manifest-512x512.png
 README.md
 tailwind.config.ts
 tsconfig.json
@@ -82,139 +97,261 @@ tsconfig.json
 <files>
 This section contains the contents of the repository's files.
 
-<file path="app/actions/contact.ts">
-"use server";
+<file path=".github/workflows/deploy.yml">
+name: Deploy Next.js site to Pages
 
-import { Resend } from "resend";
-import ContactTemplate from "@/components/emails/ContactTemplate";
-import React from "react";
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
 
-// Initialize Resend with the API key from your .env file
-const resend = new Resend(process.env.RESEND_API_KEY);
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
-export async function submitContactForm(prevState: any, formData: FormData) {
-  try {
-    const name = formData.get("name") as string;
-    const email = formData.get("email") as string;
-    const clinic = formData.get("clinic") as string;
-    const message = formData.get("message") as string;
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
-    if (!name || !email || !message) {
-      return {
-        success: false,
-        message: "Please fill out all required fields.",
-      };
-    }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        with:
+          static_site_generator: next
+      - name: Install dependencies
+        run: npm ci
+      - name: Build with Next.js
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
 
-    const { error } = await resend.emails.send({
-      from: "PyrexxAI Leads <leads@pyrexxai.com>", // Must be a verified domain in Resend
-      to: ["clifford.pyrexxai@gmail.com"], // Your receiving email
-      subject: `New AI Integration Inquiry from ${clinic || name}`,
-      react: React.createElement(ContactTemplate, {
-        name,
-        email,
-        clinic,
-        message,
-      }),
-    });
-
-    if (error) {
-      console.error("Resend API Error:", error);
-      return {
-        success: false,
-        message: "Failed to send the message. Please try again later.",
-      };
-    }
-
-    return {
-      success: true,
-      message: "Your inquiry has been securely submitted. We will contact you shortly.",
-    };
-  } catch (err) {
-    console.error("Server Action Error:", err);
-    return {
-      success: false,
-      message: "An unexpected error occurred.",
-    };
-  }
-}
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 </file>
 
-<file path="app/contact/page.tsx">
+<file path=".github/workflows/nextjs.yml">
+# Sample workflow for building and deploying a Next.js site to GitHub Pages
+#
+# To get started with Next.js see: https://nextjs.org/docs/getting-started
+#
+name: Deploy Next.js site to Pages
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Detect package manager
+        id: detect-package-manager
+        run: |
+          if [ -f "${{ github.workspace }}/yarn.lock" ]; then
+            echo "manager=yarn" >> $GITHUB_OUTPUT
+            echo "command=install" >> $GITHUB_OUTPUT
+            echo "runner=yarn" >> $GITHUB_OUTPUT
+            exit 0
+          elif [ -f "${{ github.workspace }}/package.json" ]; then
+            echo "manager=npm" >> $GITHUB_OUTPUT
+            echo "command=ci" >> $GITHUB_OUTPUT
+            echo "runner=npx --no-install" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "Unable to determine package manager"
+            exit 1
+          fi
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: ${{ steps.detect-package-manager.outputs.manager }}
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          # Automatically inject basePath in your Next.js configuration file and disable
+          # server side image optimization (https://nextjs.org/docs/api-reference/next/image#unoptimized).
+          #
+          # You may remove this line if you want to manage the configuration yourself.
+          static_site_generator: next
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+          # Generate a new cache whenever packages or source files change.
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          # If source files changed but packages didn't, rebuild from a prior cache.
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
+      - name: Install dependencies
+        run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+      - name: Build with Next.js
+        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+</file>
+
+<file path="app/about/page.tsx">
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
+import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
-import ContactForm from "@/components/ContactForm";
-import { Mail, MapPin, Phone, MessageSquare } from "lucide-react";
-import { CAL_LINK } from "@/lib/utils";
+import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Contact Us | PyrexxAI Enterprise Solutions",
-  description: "Get in touch with PyrexxAI. Request an audit, ask about EMR integrations, or secure a custom AI voice receptionist for your clinic.",
+  title: "About Us | The Team Behind PyrexxAI",
+  description: "Learn why PyrexxAI was founded. We are a technical partner dedicated to bringing enterprise-grade voice AI and EMR integration to medical clinics.",
   alternates: {
-    canonical: "https://pyrexxai.com/contact",
+    canonical: "https://pyrexxai.com/about",
   },
 };
 
-export default function ContactPage() {
+export default function AboutPage() {
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "Clifford Bulya",
+    jobTitle: "Founder & CEO",
+    worksFor: {
+      "@type": "Organization",
+      name: "PyrexxAI"
+    },
+    url: "https://pyrexxai.com/about"
+  };
+
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+    <main className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+      <Navbar />
+      <Script id="schema-person" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
+      
+      <section className="pt-32 pb-20 px-6 max-w-4xl mx-auto text-center">
+        <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6">
+          Bridging the Gap Between <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent-600 dark:from-brand-400 dark:to-accent-400">
+            Healthcare and Intelligence.
+          </span>
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+          PyrexxAI was founded with a singular mission: to eliminate the operational bottlenecks that prevent medical practices from scaling. We believe that no patient seeking care should ever be sent to voicemail.
+        </p>
+      </section>
+
+      <section className="py-16 bg-gray-50 dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="bg-white dark:bg-gray-950 p-8 md:p-12 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Technical Philosophy</h2>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+              The healthcare industry has been historically underserved by modern technology. While other sectors adopted seamless automation, medical clinics were left with disjointed EMR systems, expensive after-hours answering services, and overwhelmed front-desk staff.
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              We built PyrexxAI not as a DIY software tool, but as a dedicated technical partner. When you partner with us, we map your exact clinical workflows, custom-train conversational language models on your procedures, and build secure, HIPAA-compliant API bridges directly into your scheduling software. We handle the technical complexity so you can focus on patient care.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <CTA />
+      <Footer />
+    </main>
+  );
+}
+</file>
+
+<file path="app/error.tsx">
+"use client";
+
+import { useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { AlertTriangle, RefreshCcw } from "lucide-react";
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    // In the future, this is where you would log the error to Sentry
+    console.error("Application Error:", error);
+  }, [error]);
+
+  return (
+    <main className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
       <Navbar />
       
-      <section className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6">
-            Let's modernize your <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent-600 dark:from-brand-400 dark:to-accent-400">
-              patient intake operations.
-            </span>
+      <section className="flex-grow flex items-center justify-center pt-32 pb-24 px-6">
+        <div className="max-w-xl mx-auto text-center">
+          <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-full flex items-center justify-center mx-auto mb-8">
+            <AlertTriangle className="w-10 h-10 text-red-500 dark:text-red-400" />
+          </div>
+          <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-4">
+            Something went wrong!
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Whether you need a custom EMR integration or a full-scale AI phone deployment, our engineering team is ready to assist.
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-10 leading-relaxed">
+            An unexpected error has occurred in the application. Our engineering team has been notified.
           </p>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-12 items-start">
-          {/* Contact Info Column */}
-          <div className="lg:col-span-1 space-y-8">
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Direct Channels</h3>
-              <ul className="space-y-6">
-                <li className="flex items-start">
-                  <Mail className="w-6 h-6 text-brand-600 dark:text-brand-400 mr-4 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">Email Us</h4>
-                    <a href="mailto:clifford.pyrexxai@gmail.com" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-                      clifford.pyrexxai@gmail.com
-                    </a>
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <MessageSquare className="w-6 h-6 text-brand-600 dark:text-brand-400 mr-4 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">Live Demo</h4>
-                    <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-                      Schedule via Cal.com
-                    </a>
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <MapPin className="w-6 h-6 text-brand-600 dark:text-brand-400 mr-4 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">Headquarters</h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Serving Medical Clinics & MedSpas Nationwide
-                    </p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Form Column */}
-          <div className="lg:col-span-2">
-            <ContactForm />
-          </div>
+          <button
+            onClick={() => reset()}
+            className="inline-flex bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl text-base font-bold transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 items-center justify-center"
+          >
+            <RefreshCcw className="w-5 h-5 mr-2" /> Try Again
+          </button>
         </div>
       </section>
       
@@ -301,106 +438,1087 @@ export default function HIPAACompliancePage() {
 }
 </file>
 
-<file path="components/ContactForm.tsx">
+<file path="app/privacy-policy/page.tsx">
+import type { Metadata } from "next";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy | PyrexxAI",
+  description: "PyrexxAI's website privacy policy and data collection practices.",
+  alternates: {
+    canonical: "https://pyrexxai.com/privacy-policy",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  }
+};
+
+export default function PrivacyPolicyPage() {
+  return (
+    <main className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+      <Navbar />
+      
+      <section className="pt-32 pb-24 px-6 max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-4">Privacy Policy</h1>
+          <p className="text-base text-brand-600 dark:text-brand-400 font-medium">www.pyrexxai.com</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            Last Updated: April 21, 2026 | Effective: April 21, 2026
+          </p>
+        </div>
+
+        <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-6 mb-12">
+          <h3 className="text-lg font-bold text-emerald-800 dark:text-emerald-500 mb-2 uppercase tracking-wide">Plain-English Summary</h3>
+          <p className="text-emerald-900/80 dark:text-emerald-200/80 text-sm leading-relaxed">
+            PyrexxAI builds AI voice agents for healthcare businesses. This policy explains what information we collect on our website and through our services, how we use it, who we share it with, and your rights over it. We take privacy seriously, especially because our clients serve patients. We do not sell your data. Ever.
+          </p>
+        </div>
+
+        {/* 1. WHO WE ARE */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">1. WHO WE ARE</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI ('we', 'our', 'us') is an AI software and services company that provisions custom-tuned voice agents for healthcare businesses, currently specializing in medical spas (medspas). Our registered address and primary contact details are listed below.
+        </p>
+        
+        <div className="overflow-x-auto mb-8">
+          <table className="w-full text-left border-collapse">
+            <tbody>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 w-1/3">Company Name</th>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">PyrexxAI</td>
+              </tr>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Website</th>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="https://www.pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">www.pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Privacy Contact</th>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="mailto:privacy@pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">privacy@pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Support Contact</th>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="mailto:support@pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">support@pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Governing Law</th>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">State of Delaware, USA</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          This Privacy Policy applies to: (a) visitors of our website at www.pyrexxai.com; (b) prospective and current business clients of PyrexxAI; and (c) individuals whose personal data is processed by our services on behalf of our clients. It does not apply to websites or services operated by third parties linked from our website.
+        </p>
+
+        {/* 2. INFORMATION WE COLLECT */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">2. INFORMATION WE COLLECT</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">2.1 Information You Give Us Directly</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          When you visit our website, fill out a contact form, book a demo, or communicate with us, we may collect:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Name, business name, job title, and email address;</li>
+          <li className="leading-relaxed">Phone number and mailing address;</li>
+          <li className="leading-relaxed">Details about your business (e.g., type of clinic, patient volume, current software stack);</li>
+          <li className="leading-relaxed">Any other information you voluntarily include in a message or inquiry form.</li>
+        </ul>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">2.2 Information We Collect Automatically (Website)</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          When you visit www.pyrexxai.com, we automatically collect certain technical information through cookies and similar technologies, including:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">IP address and approximate geographic location (city/region level);</li>
+          <li className="leading-relaxed">Browser type, device type, and operating system;</li>
+          <li className="leading-relaxed">Pages visited, time spent on pages, links clicked, and referring URL;</li>
+          <li className="leading-relaxed">Session identifiers and cookie data (see Section 7 for full cookie details).</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          This information is used solely to understand how our website is used, to improve our content and user experience, and to diagnose technical issues. We do not use it to identify individual visitors without their consent.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">2.3 Business Client Information</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          When a business enters into a contract with PyrexxAI, we collect information necessary to provide and bill for our services, including:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Legal entity name, registration details, and business address;</li>
+          <li className="leading-relaxed">Names and contact details of authorized representatives and points of contact;</li>
+          <li className="leading-relaxed">Billing and payment information (processed securely through Dodo Payments — we do not store full card numbers);</li>
+          <li className="leading-relaxed">API credentials, EMR system access details, and integration configuration data provided by the client;</li>
+          <li className="leading-relaxed">Communications and correspondence related to the business relationship.</li>
+        </ul>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">2.4 Patient and Caller Data (Service Data)</h3>
+        
+        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-2xl p-6 mb-6">
+          <h4 className="text-sm font-bold text-red-800 dark:text-red-500 mb-2 uppercase tracking-wide">Important: HIPAA-Protected Information</h4>
+          <p className="text-red-900/80 dark:text-red-200/80 text-sm leading-relaxed">
+            Patient and caller data processed through our AI voice agent service is Protected Health Information (PHI) under HIPAA. This data is handled under a separate Business Associate Agreement (BAA) with each client, not this Privacy Policy. We are a Business Associate, not a Covered Entity. Patients with questions about their health data should contact their healthcare provider directly.
+          </p>
+        </div>
+
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          In delivering our voice agent services, our systems may process the following categories of data on behalf of our healthcare clients:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Caller name, phone number, and contact information;</li>
+          <li className="leading-relaxed">Reason for inquiry, appointment preferences, and intake responses;</li>
+          <li className="leading-relaxed">Health-related information voluntarily disclosed by callers during intake;</li>
+          <li className="leading-relaxed">Call recordings and transcripts (where legally disclosed to callers by the client).</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI processes this data solely as a service provider acting on our client's documented instructions. We do not use patient data for our own purposes, sell it, or use it to train AI models accessible to third parties.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">2.5 Information from Third Parties</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          We may receive limited information about prospective clients from publicly available sources (such as LinkedIn or business directories) for the purpose of business outreach. We do not purchase consumer data lists.
+        </p>
+
+        {/* 3. HOW WE USE YOUR INFORMATION */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">3. HOW WE USE YOUR INFORMATION</h2>
+        
+        <div className="overflow-x-auto mb-6">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th className="bg-brand-50 dark:bg-brand-900/20 px-4 py-3 text-sm font-semibold text-brand-900 dark:text-brand-100 border border-brand-200 dark:border-brand-800">Purpose</th>
+                <th className="bg-brand-50 dark:bg-brand-900/20 px-4 py-3 text-sm font-semibold text-brand-900 dark:text-brand-100 border border-brand-200 dark:border-brand-800">Legal Basis / Justification</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Responding to inquiries and demo requests</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legitimate interest / Pre-contractual steps</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Onboarding and delivering services to clients</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Performance of contract</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Processing payments and managing billing</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Performance of contract / Legal obligation</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Sending service-related communications</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Performance of contract / Legitimate interest</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Marketing our services to prospects (with opt-out)</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legitimate interest / Consent</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Improving our website and platform (anonymized)</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legitimate interest</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Complying with legal and regulatory obligations</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legal obligation</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Detecting fraud and ensuring security</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legitimate interest / Legal obligation</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          We do not use your information to make fully automated decisions that produce legal or similarly significant effects about you without human review.
+        </p>
+
+        {/* 4. HOW WE SHARE YOUR INFORMATION */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">4. HOW WE SHARE YOUR INFORMATION</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI does not sell, rent, or trade your personal information to third parties for their own commercial use. We share information only in the following circumstances:
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">4.1 Sub-Processors & Service Providers</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          We engage the following third-party service providers who may access personal data only to the extent necessary to perform their specific function. Each is bound by a data processing agreement with appropriate privacy protections:
+        </p>
+        
+        <div className="overflow-x-auto mb-8">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Provider</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Location</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Function</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Data Accessed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Retell AI</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">San Carlos, CA</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">AI voice agent infrastructure; processes call audio and transcripts</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Call data, transcripts</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Dodo Payments</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Dover, DE</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Payment processing, subscription management, invoicing</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Billing info, email, name</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Google (Alphabet Inc.)</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Mountain View, CA</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Cloud data storage (Cloud SQL) and analytics visualization (Looker Studio)</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Call logs, performance metrics</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">4.2 Legal Disclosure</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          We may disclose personal information if required to do so by law, court order, or lawful government request, or where we believe in good faith that disclosure is necessary to protect the rights, safety, or property of PyrexxAI, our clients, or the public. Where permitted, we will notify affected parties before complying.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">4.3 Business Transfers</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          If PyrexxAI is involved in a merger, acquisition, asset sale, or corporate reorganization, personal data may be transferred as part of that transaction. We will provide notice before personal data is transferred and becomes subject to a different privacy policy. Any acquirer will be required to honor the commitments made in this Privacy Policy.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">4.4 Consent</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          We may share personal data in ways not described above with your explicit prior consent.
+        </p>
+
+        {/* 5. HIPAA, HEALTHCARE DATA & OUR ROLE */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">5. HIPAA, HEALTHCARE DATA & OUR ROLE</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">5.1 PyrexxAI as a Business Associate</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          When providing voice agent services to healthcare clients, PyrexxAI functions as a HIPAA Business Associate. We do not independently determine the purposes or means of processing patient PHI -- that is the role of our clients (Covered Entities). Our processing is governed by the BAA executed with each client and by applicable HIPAA/HITECH regulations.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">5.2 No Training on PHI</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI warrants that individual patient PHI is processed via secure API connections and is never used to train, fine-tune, or improve any publicly available or third-party AI foundation model. Anonymized and de-identified aggregate data may be used for service performance optimization strictly in accordance with HIPAA de-identification standards (45 CFR Section 164.514).
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">5.3 Patients: How to Exercise Your HIPAA Rights</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          If you are a patient and wish to access, correct, or request deletion of health information held by a PyrexxAI client, you should contact that healthcare provider directly. PyrexxAI will assist clients in responding to such requests as required by our BAA obligations. You may also contact us at privacy@pyrexxai.com if you are unable to identify the relevant provider.
+        </p>
+
+        {/* 6. DATA RETENTION */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">6. DATA RETENTION</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          We retain personal data only for as long as necessary for the purposes for which it was collected and to comply with applicable legal obligations. Our standard retention periods are as follows:
+        </p>
+
+        <div className="overflow-x-auto mb-6">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Data Category</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Retention Period</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Basis</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Website visitor / analytics data</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">13 months</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Industry standard / cookie policy</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Contact / inquiry form data</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">3 years from last contact</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legitimate interest</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Client account and contract records</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">7 years post-termination</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legal / tax obligation</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Payment and billing records</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">7 years from invoice date</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legal / tax obligation</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Service data (call logs, transcripts)</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">90 days post-contract termination</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">BAA / DPA obligation</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Anonymized performance/aggregate data</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Indefinite (no identifiable data)</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legitimate interest</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          At the end of the applicable retention period, personal data is securely deleted or anonymized using methods that render it unrecoverable. For PHI specifically, return and destruction procedures are governed by Article VI of the BAA.
+        </p>
+
+        {/* 7. COOKIES & TRACKING TECHNOLOGIES */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">7. COOKIES & TRACKING TECHNOLOGIES</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">7.1 What Are Cookies</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Cookies are small text files placed on your device when you visit our website. We also use similar technologies such as web beacons and local storage. You can control cookies through your browser settings, though disabling certain cookies may affect website functionality.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">7.2 Cookies We Use</h3>
+        <div className="overflow-x-auto mb-6">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Cookie Type</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Name / Provider</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Duration</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 font-semibold">Strictly Necessary</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Session cookie</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Session</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Enables basic website navigation and security. Cannot be opted out.</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 font-semibold">Analytics</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Google Analytics (GA4)</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">13 months</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Tracks page visits and user behavior in anonymized form to improve website content. Opt-out available.</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 font-semibold">Preference</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Internal preference cookie</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">12 months</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Remembers your cookie consent choice and display preferences.</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 font-semibold">Marketing / Retargeting</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Third-party (if enabled)</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">30 days</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Used only with your explicit consent to show relevant ads on other platforms.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          On your first visit, you will be presented with a cookie consent banner giving you the option to accept or decline non-essential cookies. You may withdraw consent at any time by clicking 'Cookie Preferences' in the website footer.
+        </p>
+
+        {/* 8. YOUR PRIVACY RIGHTS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">8. YOUR PRIVACY RIGHTS</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">8.1 Rights Available to All Users</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          Regardless of where you are located, you may exercise the following rights by contacting us at privacy@pyrexxai.com:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Access: Request a copy of the personal data we hold about you;</li>
+          <li className="leading-relaxed">Correction: Request that inaccurate or incomplete information be corrected;</li>
+          <li className="leading-relaxed">Deletion: Request that we delete your personal data, subject to legal retention obligations;</li>
+          <li className="leading-relaxed">Objection: Object to our processing of your data for direct marketing purposes at any time;</li>
+          <li className="leading-relaxed">Data Portability: Request your data in a structured, machine-readable format where applicable;</li>
+          <li className="leading-relaxed">Withdraw Consent: Where processing is based on consent, withdraw that consent at any time.</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          We will respond to all verifiable requests within thirty (30) calendar days. We may ask you to verify your identity before processing a request.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">8.2 California Residents (CCPA/CPRA)</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA) as amended by the California Privacy Rights Act (CPRA):
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Right to Know: Request disclosure of the categories and specific pieces of personal information collected, the sources, the business purposes, and the third parties with whom we share it;</li>
+          <li className="leading-relaxed">Right to Delete: Request deletion of personal information we hold, subject to exceptions;</li>
+          <li className="leading-relaxed">Right to Correct: Request correction of inaccurate personal information;</li>
+          <li className="leading-relaxed">Right to Opt-Out of Sale or Sharing: We do not sell or share personal information for cross-context behavioral advertising. If this changes, you will be notified and given a clear opt-out;</li>
+          <li className="leading-relaxed">Right to Limit Use of Sensitive Personal Information: We do not use sensitive personal information for purposes beyond those permitted under the CPRA;</li>
+          <li className="leading-relaxed">Right to Non-Discrimination: We will not discriminate against you for exercising any CCPA/CPRA right.</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          To submit a verifiable consumer request, email privacy@pyrexxai.com with the subject line 'CCPA Request'. We will respond within 45 calendar days.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">8.3 Do Not Track</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Our website does not currently respond to 'Do Not Track' browser signals, as there is no industry-standard protocol for doing so. You may use browser extensions or settings to limit tracking. We honor opt-out of analytics cookies through our cookie consent mechanism.
+        </p>
+
+        {/* 9. DATA SECURITY */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">9. DATA SECURITY</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          We implement appropriate technical and organizational security measures to protect personal data against unauthorized access, loss, alteration, or disclosure. These measures include:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Encryption of data in transit using TLS 1.2 or higher and at rest using AES-256 or equivalent;</li>
+          <li className="leading-relaxed">Role-based access controls ensuring data access is limited to personnel with a legitimate need;</li>
+          <li className="leading-relaxed">Regular security assessments and vulnerability testing of our platform and infrastructure;</li>
+          <li className="leading-relaxed">Incident detection, response, and breach notification procedures aligned with HIPAA requirements;</li>
+          <li className="leading-relaxed">Employee security training and confidentiality obligations.</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          No method of transmission over the internet or electronic storage is 100% secure. While we use commercially reasonable measures to protect your data, we cannot guarantee absolute security. In the event of a data breach affecting your rights, we will notify affected parties in accordance with applicable law and our BAA obligations.
+        </p>
+
+        {/* 10. CHILDREN'S PRIVACY */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">10. CHILDREN'S PRIVACY</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Our website and services are intended for business clients and are not directed at individuals under the age of 18. We do not knowingly collect personal data from children under 18. If we become aware that we have inadvertently collected personal information from a child under 18 without parental consent, we will take steps to delete that information promptly. If you believe we have collected such information, please contact us at privacy@pyrexxai.com.
+        </p>
+
+        {/* 11. INTERNATIONAL DATA TRANSFERS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">11. INTERNATIONAL DATA TRANSFERS</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI operates primarily in the United States. Our sub-processors are also US-based. If you are accessing our website or services from outside the United States, please be aware that your data may be transferred to, stored, and processed in the United States, where data protection laws may differ from those in your country.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Where we transfer data of individuals located in jurisdictions with specific international transfer requirements (such as the EU/EEA or UK), we will implement appropriate safeguards such as Standard Contractual Clauses (SCCs) or other legally recognized transfer mechanisms. Contact privacy@pyrexxai.com for more information about applicable safeguards.
+        </p>
+
+        {/* 12. THIRD-PARTY LINKS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">12. THIRD-PARTY LINKS</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Our website may contain links to third-party websites, social media platforms, or tools. These third parties have their own privacy policies, and we are not responsible for their content or privacy practices. We encourage you to review the privacy policy of any third-party site you visit.
+        </p>
+
+        {/* 13. CHANGES TO THIS PRIVACY POLICY */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">13. CHANGES TO THIS PRIVACY POLICY</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          We may update this Privacy Policy from time to time to reflect changes in our practices, technology, legal requirements, or other factors. When we make material changes, we will:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Update the 'Last Updated' date at the top of this page;</li>
+          <li className="leading-relaxed">Post a notice on our website homepage for at least 30 days after the change takes effect;</li>
+          <li className="leading-relaxed">For existing clients, send an email notification to the address on file at least 14 days before the change takes effect for material changes that affect how we process their data.</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Your continued use of our website or services after the effective date of a revised Privacy Policy constitutes your acceptance of the changes. If you do not agree to the updated policy, you may discontinue use of our services and request deletion of your data per Section 8.
+        </p>
+
+        {/* 14. CONTACT US */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">14. CONTACT US</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
+        </p>
+        <div className="overflow-x-auto mb-8">
+          <table className="w-full text-left border-collapse">
+            <tbody>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 w-1/3">Privacy Inquiries</th>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="mailto:privacy@pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">privacy@pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">General Support</th>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="mailto:support@pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">support@pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Website</th>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="https://www.pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">www.pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Response Time Commitment</th>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Within 5 business days for general inquiries; within 30 calendar days for formal rights requests</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          If you are not satisfied with our response, and you are located in a jurisdiction that provides such rights, you may have the right to lodge a complaint with your local data protection authority.
+        </p>
+
+      </section>
+      
+      <Footer />
+    </main>
+  );
+}
+</file>
+
+<file path="app/terms-of-service/page.tsx">
+import type { Metadata } from "next";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Terms of Service | PyrexxAI",
+  description: "Terms of service and acceptable use policy for PyrexxAI.",
+  alternates: {
+    canonical: "https://pyrexxai.com/terms-of-service",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  }
+};
+
+export default function TermsOfServicePage() {
+  return (
+    <main className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+      <Navbar />
+      
+      <section className="pt-32 pb-24 px-6 max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-4">Terms of Service</h1>
+          <p className="text-base text-brand-600 dark:text-brand-400 font-medium">www.pyrexxai.com</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            Last Updated: April 21, 2026 | Effective: April 21, 2026
+          </p>
+        </div>
+
+        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-6 mb-12">
+          <h3 className="text-lg font-bold text-amber-800 dark:text-amber-500 mb-2 uppercase tracking-wide">Please Read These Terms Carefully</h3>
+          <p className="text-amber-900/80 dark:text-amber-200/80 text-sm leading-relaxed">
+            These Terms of Service constitute a legally binding agreement between you and PyrexxAI. By accessing our website, requesting a demo, or using our services, you agree to be bound by these Terms. If you do not agree, do not use our website or services. Clients who have executed a Master Service Agreement (MSA) with PyrexxAI are also bound by that agreement; in the event of a conflict, the MSA governs.
+          </p>
+        </div>
+
+        {/* 1. ACCEPTANCE OF TERMS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">1. ACCEPTANCE OF TERMS</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          By accessing or using the PyrexxAI website at www.pyrexxai.com ('Site'), requesting a product demonstration, completing a payment, or executing a Statement of Work (SOW) or Master Service Agreement (MSA), you ('User', 'Client', or 'you') agree to be bound by these Terms of Service ('Terms'), our Privacy Policy, and any additional terms applicable to specific services or promotions. These Terms apply to all visitors, prospective clients, and current clients.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          If you are accepting these Terms on behalf of a company or other legal entity, you represent and warrant that you have the authority to bind that entity to these Terms. If you do not have such authority, you must not accept these Terms or use our services on behalf of such entity.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI reserves the right to update these Terms at any time. Continued use of the Site or services after notice of a change constitutes acceptance. See Section 19 for our change notification process.
+        </p>
+
+        {/* 2. ABOUT PYREXXAI & OUR SERVICES */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">2. ABOUT PYREXXAI & OUR SERVICES</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">2.1 Who We Are</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI is an AI software and services company that provisions custom-tuned AI voice agents for healthcare businesses, currently specializing in medical spas and aesthetic clinics ('medspas'). Our voice agents handle inbound patient intake calls on behalf of our clients.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">2.2 Description of Services</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          PyrexxAI offers the following services (collectively, 'Services'), as further described in applicable Statements of Work:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed"><strong>AI Voice Agent Implementation:</strong> Configuration, scripting, and fine-tuning of a custom AI voice agent aligned to each client's intake workflow, brand voice, and scheduling needs;</li>
+          <li className="leading-relaxed"><strong>24/7 Inbound Call Handling:</strong> Deployment of the voice agent to receive inbound calls, triage callers, collect intake information, and route or escalate per configured logic;</li>
+          <li className="leading-relaxed"><strong>EMR & Booking Integration:</strong> Integration of the voice agent with the client's electronic medical records (EMR) and scheduling platforms using client-provided API credentials;</li>
+          <li className="leading-relaxed"><strong>Platform Management:</strong> Ongoing monitoring, maintenance, optimization, and reporting for active voice agent deployments;</li>
+          <li className="leading-relaxed"><strong>Website & Marketing Presence:</strong> The Site provides information about our Services, company, and contact options.</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Services are provided on a subscription basis following a one-time implementation fee, as specified in the applicable SOW. Outbound dialing, SMS marketing campaigns, and any services not expressly stated in an executed SOW are outside scope and require a separate agreement.
+        </p>
+
+        {/* 3. ELIGIBILITY */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">3. ELIGIBILITY</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          Our Services are intended for business clients only. To use or subscribe to our Services you must:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Be a legal business entity (e.g., corporation, LLC, sole proprietorship) or an authorized representative of such an entity;</li>
+          <li className="leading-relaxed">Be at least 18 years of age;</li>
+          <li className="leading-relaxed">Have the legal authority to enter into binding contracts in your jurisdiction;</li>
+          <li className="leading-relaxed">Operate in a business category compatible with our Services (currently, medical spa and healthcare-adjacent businesses);</li>
+          <li className="leading-relaxed">Not be located in a jurisdiction where receiving our Services would be prohibited by law.</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI reserves the right to refuse service to any entity at its sole discretion, including where we determine the intended use is incompatible with our policies or applicable law.
+        </p>
+
+        {/* 4. ACCOUNTS, ACCESS & SECURITY */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">4. ACCOUNTS, ACCESS & SECURITY</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">4.1 Account Creation</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          To access certain features or enter into a service relationship, you may be required to provide account information including your name, business name, email address, and payment details. You agree to provide accurate, current, and complete information and to update it promptly if it changes.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">4.2 Credential Security</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          You are responsible for maintaining the confidentiality of any access credentials, API keys, and login details associated with your account or provided to PyrexxAI for integration purposes. You agree to notify PyrexxAI immediately at support@pyrexxai.com if you suspect any unauthorized access to your account or any security breach affecting your credentials.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">4.3 Responsibility for Account Activity</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          You are responsible for all activity that occurs under your account or through your provided credentials, whether or not authorized by you. PyrexxAI is not liable for any loss or damage arising from your failure to protect your account credentials.
+        </p>
+
+        {/* 5. PERMITTED USE & PROHIBITED CONDUCT */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">5. PERMITTED USE & PROHIBITED CONDUCT</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">5.1 Permitted Use</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Subject to these Terms and an executed SOW, PyrexxAI grants you a limited, non-exclusive, non-transferable, revocable license to access and use the Services solely for your own internal business operations and in accordance with applicable law.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">5.2 Prohibited Conduct</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          You agree not to, and not to permit or enable any third party to:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Use the Services for any purpose that is unlawful, fraudulent, or in violation of applicable law or regulation, including HIPAA, FTC regulations, or state telemarketing laws;</li>
+          <li className="leading-relaxed">Use the AI voice agent for outbound dialing, robocalling, SMS campaigns, or any purpose not authorized in an executed SOW;</li>
+          <li className="leading-relaxed">Reverse engineer, decompile, disassemble, copy, or attempt to derive source code or underlying algorithms of the PyrexxAI platform;</li>
+          <li className="leading-relaxed">Attempt to probe, scan, test, or breach the security of the PyrexxAI platform or any related infrastructure;</li>
+          <li className="leading-relaxed">Transmit malware, viruses, or any code designed to disrupt, damage, or gain unauthorized access to systems;</li>
+          <li className="leading-relaxed">Use the Services to discriminate against patients or callers based on protected characteristics, or to violate any individual's rights;</li>
+          <li className="leading-relaxed">Misrepresent your identity, business, or qualifications to PyrexxAI or to callers interacting with your AI voice agent;</li>
+          <li className="leading-relaxed">Resell, sublicense, or otherwise commercialize access to the Services without PyrexxAI's prior written consent;</li>
+          <li className="leading-relaxed">Use the Services in any way that could bring PyrexxAI into disrepute or harm its reputation or that of its other clients.</li>
+        </ul>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">5.3 Call Recording & Consent Disclosures</h3>
+        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-2xl p-6 mb-8">
+          <h4 className="text-sm font-bold text-red-800 dark:text-red-500 mb-2 uppercase tracking-wide">Client Responsibility: Call Recording Compliance</h4>
+          <p className="text-red-900/80 dark:text-red-200/80 text-sm leading-relaxed">
+            Client is solely responsible for ensuring that all legally required call recording disclosures and consent notifications are provided to callers before any recording or transcription begins. This includes compliance with two-party consent laws in applicable states (e.g., California, Florida, Illinois). PyrexxAI will configure the agent per Client's instructions but bears no liability for Client's failure to implement compliant disclosures. We strongly recommend consulting legal counsel on your state-specific obligations.
+          </p>
+        </div>
+
+        {/* 6. HEALTHCARE COMPLIANCE OBLIGATIONS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">6. HEALTHCARE COMPLIANCE OBLIGATIONS</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">6.1 Client as Covered Entity</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          If you are a HIPAA Covered Entity (e.g., a healthcare provider), you acknowledge that:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">You are responsible for determining the lawfulness of collecting and processing patient PHI through the PyrexxAI voice agent;</li>
+          <li className="leading-relaxed">You must ensure that a signed Business Associate Agreement (BAA) with PyrexxAI is in place before any PHI is processed through our Services;</li>
+          <li className="leading-relaxed">You are responsible for your patients' Notice of Privacy Practices and any required HIPAA disclosures to patients;</li>
+          <li className="leading-relaxed">You must not configure the voice agent to collect PHI categories beyond what is necessary for the intake purpose described in your SOW.</li>
+        </ul>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">6.2 AI Disclosure to Callers</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          You acknowledge that callers to your business will interact with an AI-powered voice agent. You agree to disclose, or to configure the voice agent to disclose, the AI nature of the interaction at the start of each call, in a manner that is clear, timely, and in compliance with applicable AI disclosure laws and regulations, including any state-level requirements.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI's standard voice agent configurations include an AI disclosure prompt. You must not instruct PyrexxAI to remove or suppress this disclosure. If you have specific legal requirements regarding AI disclosure format, you must notify PyrexxAI in writing and we will work with you to configure a compliant disclosure.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">6.3 Scope Limitation</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          The PyrexxAI voice agent is designed for patient intake purposes only. It is not a licensed medical device, does not provide medical advice, diagnosis, or treatment recommendations, and must not be represented or configured to do so. You are responsible for ensuring callers who require urgent medical attention are appropriately routed to emergency services or qualified clinical staff.
+        </p>
+
+        {/* 7. INTELLECTUAL PROPERTY */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">7. INTELLECTUAL PROPERTY</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">7.1 PyrexxAI Intellectual Property</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          All intellectual property rights in the PyrexxAI platform, including software, voice agent configurations, AI models, workflows, algorithms, designs, branding, website content, and documentation, are and remain the exclusive property of PyrexxAI or its licensors. Nothing in these Terms transfers ownership of any PyrexxAI intellectual property to you.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          The limited license granted under Section 5.1 does not include the right to: copy, modify, or create derivative works from the platform; sublicense access to the platform; or use PyrexxAI's trademarks, logos, or branding without prior written consent.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">7.2 Client Data</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          You retain all ownership rights in data and content you provide to PyrexxAI in connection with the Services, including patient call data, booking information, and EMR records ('Client Data'). You grant PyrexxAI a limited, non-exclusive license to use Client Data solely to provide and improve the Services as described in the applicable SOW and DPA.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">7.3 Feedback</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          If you provide feedback, suggestions, or ideas regarding the Services ('Feedback'), you grant PyrexxAI a perpetual, irrevocable, royalty-free, worldwide license to use such Feedback for any purpose, including incorporating it into our products and services, without obligation or compensation to you.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">7.4 Website Content</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          All content on www.pyrexxai.com, including text, graphics, logos, and images, is the property of PyrexxAI and is protected by applicable intellectual property law. You may not reproduce, distribute, or create derivative works from website content without our express written permission.
+        </p>
+
+        {/* 8. FEES, BILLING & PAYMENT */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">8. FEES, BILLING & PAYMENT</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">8.1 Fee Structure</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Fees for Services are set out in the applicable Statement of Work. Current standard pricing is as follows (subject to change; always confirmed in your SOW):
+        </p>
+        <div className="overflow-x-auto mb-8">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Service</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Amount</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Billing Timing</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Implementation & Logic Setup</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">$1,500.00 (one-time)</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Invoiced at SOW execution; due within 14 days</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Monthly Platform Management</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">$1,000.00/month</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Commences on System Launch or 7 days post-credential receipt (later of the two)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">8.2 Payment Processing</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Payments are processed securely through Dodo Payments. By providing payment details, you authorize PyrexxAI to charge the applicable fees on the schedule specified in your SOW. You are responsible for maintaining valid payment credentials throughout the subscription term.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">8.3 Taxes</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          All fees are exclusive of applicable taxes, levies, or duties imposed by taxing authorities. You are responsible for paying all taxes associated with your use of the Services, except for taxes on PyrexxAI's net income.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">8.4 Disputes & Refunds</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          If you believe an invoice is incorrect, you must notify PyrexxAI in writing within ten (10) calendar days of the invoice date with a specific description of the dispute. Undisputed amounts remain due. One-time implementation fees are non-refundable once implementation work has commenced. Monthly fees are not refunded for partial months, except where PyrexxAI fails to meet its SLA commitments as described in the applicable SOW (in which case service credits apply).
+        </p>
+
+        {/* 9. TERM & TERMINATION */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">9. TERM & TERMINATION</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">9.1 Term</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          These Terms remain in effect for as long as you use our website or hold an active service agreement with PyrexxAI. Service agreements are subject to the term and termination provisions of the applicable MSA.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">9.2 Termination by You</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          You may terminate your service subscription by providing thirty (30) calendar days' written notice to PyrexxAI at legal@pyrexxai.com, in accordance with the termination provisions of your MSA. Termination does not relieve you of outstanding payment obligations.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">9.3 Termination by PyrexxAI</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          PyrexxAI may suspend or terminate your access to the Services or this website immediately and without notice if:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">You materially breach these Terms or your MSA and fail to cure within 15 days of written notice;</li>
+          <li className="leading-relaxed">You engage in conduct that poses a legal risk to PyrexxAI or its other clients;</li>
+          <li className="leading-relaxed">You use the Services in violation of applicable law, including HIPAA;</li>
+          <li className="leading-relaxed">You fail to make undisputed payments when due after written notice and a cure period;</li>
+          <li className="leading-relaxed">Continued service is required to be discontinued by applicable law or government order.</li>
+        </ul>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">9.4 Effect of Termination</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Upon termination: all licenses granted to you terminate immediately; you must cease using the Services; outstanding fees become immediately due; and each party must return or destroy the other's confidential information per the MSA. Data return and destruction obligations under the BAA and DPA survive termination.
+        </p>
+
+        {/* 10. DISCLAIMERS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">10. DISCLAIMERS</h2>
+        
+        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-8">
+          <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2 uppercase tracking-wide">Not Medical Advice</h4>
+          <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+            PyrexxAI's AI voice agents are tools for patient intake and scheduling purposes only. Nothing in our Services constitutes medical advice, clinical diagnosis, treatment recommendations, or a substitute for professional medical judgment. PyrexxAI is not a licensed healthcare provider and assumes no clinical responsibility for interactions facilitated through its platform.
+          </p>
+        </div>
+        
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6 uppercase">
+          THE SITE AND SERVICES ARE PROVIDED 'AS IS' AND 'AS AVAILABLE' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE. TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, PYREXXAI EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6 uppercase">
+          PYREXXAI DOES NOT WARRANT THAT: (A) THE SERVICES WILL BE UNINTERRUPTED, ERROR-FREE, OR COMPLETELY SECURE; (B) THE AI VOICE AGENT WILL CAPTURE ALL CALLER INFORMATION WITH PERFECT ACCURACY IN ALL CIRCUMSTANCES; OR (C) ANY PARTICULAR RESULT OR OUTCOME WILL BE ACHIEVED THROUGH USE OF THE SERVICES. CLIENT IS RESPONSIBLE FOR IMPLEMENTING APPROPRIATE HUMAN REVIEW AND ESCALATION PROCEDURES.
+        </p>
+
+        {/* 11. LIMITATION OF LIABILITY */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">11. LIMITATION OF LIABILITY</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6 uppercase">
+          TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, PYREXXAI'S TOTAL AGGREGATE LIABILITY TO YOU FOR ANY CLAIM ARISING OUT OF OR RELATING TO THESE TERMS, THE SITE, OR THE SERVICES SHALL NOT EXCEED THE TOTAL FEES PAID BY YOU TO PYREXXAI IN THE THREE (3) CALENDAR MONTHS IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO THE CLAIM.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6 uppercase">
+          FOR CLAIMS ARISING FROM GROSS NEGLIGENCE, WILFUL MISCONDUCT, OR UNAUTHORIZED DISCLOSURE OF PHI CAUSED BY PYREXXAI, THE CAP SHALL EQUAL TWELVE (12) MONTHS OF FEES PAID. THIS HIGHER CAP DOES NOT APPLY TO CLAIMS ARISING FROM CLIENT'S OWN NEGLIGENCE OR MISUSE OF THE SERVICES.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6 uppercase">
+          IN NO EVENT SHALL EITHER PARTY BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, PUNITIVE, OR EXEMPLARY DAMAGES, INCLUDING LOSS OF PROFITS, REVENUE, DATA, GOODWILL, OR BUSINESS OPPORTUNITY, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Some jurisdictions do not allow the exclusion of certain warranties or limitation of liability. In such jurisdictions, the above limitations apply to the maximum extent permitted by law.
+        </p>
+
+        {/* 12. INDEMNIFICATION */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">12. INDEMNIFICATION</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          You agree to defend, indemnify, and hold harmless PyrexxAI and its officers, directors, employees, contractors, and agents from and against any third-party claims, damages, losses, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Your breach of these Terms or any applicable SOW or MSA;</li>
+          <li className="leading-relaxed">Your failure to implement legally required call recording disclosures or AI disclosure notifications;</li>
+          <li className="leading-relaxed">Your misuse of the Services, including use outside the scope of an executed SOW;</li>
+          <li className="leading-relaxed">Your violation of any applicable law or regulation, including HIPAA;</li>
+          <li className="leading-relaxed">Any claim by a patient or caller arising from your healthcare operations or your failure to provide appropriate clinical oversight;</li>
+          <li className="leading-relaxed">Any content, data, or instructions you provide to PyrexxAI that infringe on the rights of any third party.</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI will indemnify you against third-party claims arising from PyrexxAI's gross negligence, wilful misconduct, or unauthorized disclosure of PHI caused by PyrexxAI's failure to comply with its BAA obligations, per the terms of the MSA.
+        </p>
+
+        {/* 13. GOVERNING LAW & DISPUTE RESOLUTION */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">13. GOVERNING LAW & DISPUTE RESOLUTION</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">13.1 Governing Law</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          These Terms are governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of law principles. The United Nations Convention on Contracts for the International Sale of Goods does not apply to these Terms.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">13.2 Informal Resolution</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Before initiating formal dispute proceedings, you agree to contact PyrexxAI at legal@pyrexxai.com and attempt to resolve the dispute informally for a period of fifteen (15) calendar days. Many issues can be resolved faster through direct communication.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">13.3 Binding Arbitration</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          If informal resolution fails, all disputes arising out of or relating to these Terms or the Services shall be resolved by final and binding arbitration administered by the American Arbitration Association (AAA) under its Commercial Arbitration Rules, except as provided in Section 13.4. The arbitration shall be conducted by a single arbitrator in Wilmington, Delaware (or virtually by mutual agreement). The arbitrator's award may be entered as a judgment in any court of competent jurisdiction.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">13.4 Exceptions to Arbitration</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Either party may seek emergency injunctive or other equitable relief from a court of competent jurisdiction to prevent irreparable harm, without waiving the right to arbitrate the underlying dispute. Claims for non-payment of undisputed fees may also be pursued in court at PyrexxAI's election.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">13.5 Class Action Waiver</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6 uppercase">
+          YOU AGREE THAT ANY DISPUTE RESOLUTION PROCEEDINGS WILL BE CONDUCTED ONLY ON AN INDIVIDUAL BASIS AND NOT IN A CLASS, CONSOLIDATED, OR REPRESENTATIVE ACTION. IF THIS WAIVER IS FOUND TO BE UNENFORCEABLE, THE ARBITRATION AGREEMENT DOES NOT APPLY AND THE DISPUTE SHALL BE RESOLVED IN COURT.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">13.6 Venue for Non-Arbitrable Claims</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          For any matter not subject to arbitration, each party irrevocably consents to the exclusive jurisdiction and venue of the state and federal courts located in New Castle County, Delaware.
+        </p>
+
+        {/* 14. THIRD-PARTY SERVICES & LINKS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">14. THIRD-PARTY SERVICES & LINKS</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Our Services integrate with third-party platforms including EMR systems, booking software, and the sub-processors listed in our Privacy Policy. PyrexxAI is not responsible for the performance, security, or availability of third-party platforms and shall not be liable for any damages arising from your use of or reliance on such platforms.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Our website may contain links to third-party websites for informational purposes. These links do not constitute endorsement of any product, service, or organization. PyrexxAI has no control over third-party sites and is not responsible for their content or privacy practices.
+        </p>
+
+        {/* 15. FORCE MAJEURE */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">15. FORCE MAJEURE</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI shall not be liable for any delay or failure to perform its obligations (other than payment obligations) arising from circumstances beyond its reasonable control, including acts of God, natural disasters, pandemic, government action, war, civil unrest, internet or infrastructure outages, or third-party provider failures. PyrexxAI will use commercially reasonable efforts to minimize disruption and resume performance as soon as practicable. If a force majeure event continues for more than sixty (60) days, either party may terminate the affected SOW without penalty, except for fees accrued prior to the event.
+        </p>
+
+        {/* 16. AI-SPECIFIC DISCLOSURES & LIMITATIONS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">16. AI-SPECIFIC DISCLOSURES & LIMITATIONS</h2>
+        
+        <div className="bg-brand-50 dark:bg-brand-900/10 border border-brand-200 dark:border-brand-800/50 rounded-2xl p-6 mb-8">
+          <h4 className="text-sm font-bold text-brand-800 dark:text-brand-500 mb-2 uppercase tracking-wide">Understanding AI Limitations</h4>
+          <p className="text-brand-900/80 dark:text-brand-200/80 text-sm leading-relaxed">
+            Our voice agent uses AI technology and is subject to the inherent limitations of current AI systems. It may occasionally mishear, misinterpret, or fail to capture information accurately. Clients are responsible for implementing appropriate human review of intake data before clinical or operational decisions are made based on that data.
+          </p>
+        </div>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">16.1 AI Accuracy</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI's voice agent is designed to perform reliably under normal operating conditions but does not guarantee 100% accuracy in all interactions. Factors such as background noise, accent variation, call quality, and unusual caller responses may affect performance. We commit to the accuracy and uptime targets specified in the applicable SOW's SLA schedule.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">16.2 Human Oversight Responsibility</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Client is solely responsible for maintaining appropriate human oversight of AI-generated intake data. PyrexxAI strongly recommends that clinical or operational decisions not be made solely on the basis of AI-captured data without human verification, particularly for health-related information.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">16.3 AI Model Updates</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          PyrexxAI may update the underlying AI models and platform technology that power your voice agent to improve performance, fix errors, or maintain regulatory compliance. We will provide reasonable advance notice of updates that may materially change agent behavior, and will work with you to re-test configurations where warranted.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">16.4 Compliance with Emerging AI Regulation</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          AI regulation is an evolving area of law. PyrexxAI monitors developments in AI-specific regulation (including FTC guidance, state AI disclosure laws, and sector-specific healthcare AI rules) and will update its practices and notify clients of changes that affect your compliance obligations. Client is ultimately responsible for ensuring that its use of AI-powered tools complies with all laws applicable to its business and jurisdiction.
+        </p>
+
+        {/* 17. PUBLICITY & REFERENCES */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">17. PUBLICITY & REFERENCES</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          By entering into a service agreement with PyrexxAI, you grant us a non-exclusive, royalty-free license to identify you as a client in our marketing materials, website, pitch decks, and case studies. We will not misrepresent the scope or results of your engagement. You may revoke this right at any time by written notice to marketing@pyrexxai.com, effective within ten (10) business days of receipt.
+        </p>
+
+        {/* 18. GENERAL PROVISIONS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">18. GENERAL PROVISIONS</h2>
+        
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">18.1 Entire Agreement</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          For website visitors, these Terms constitute the entire agreement between you and PyrexxAI regarding your use of the Site. For clients with executed service agreements, these Terms are supplemented by the MSA, SOW, BAA, and DPA, which together constitute the entire agreement. In the event of a conflict between these Terms and an executed MSA, the MSA governs.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">18.2 Severability</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          If any provision of these Terms is found to be unenforceable, that provision will be modified to the minimum extent necessary to make it enforceable, and the remaining provisions will continue in full force.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">18.3 Waiver</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Our failure to enforce any right or provision of these Terms is not a waiver of that right or provision. Waivers must be in writing and signed by an authorized PyrexxAI representative.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">18.4 Assignment</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          You may not assign these Terms or any rights or obligations hereunder without PyrexxAI's prior written consent. PyrexxAI may assign these Terms in connection with a merger, acquisition, or sale of all or substantially all of its assets, with thirty (30) days' prior written notice.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">18.5 Notices</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Notices to PyrexxAI under these Terms should be sent to legal@pyrexxai.com. We will send notices to you at the email address associated with your account or provided in your MSA. Notices are effective upon confirmed receipt.
+        </p>
+
+        <h3 className="text-xl font-semibold text-brand-700 dark:text-brand-400 mt-8 mb-4">18.6 Relationship of Parties</h3>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          These Terms do not create any partnership, joint venture, employment, franchise, or agency relationship between you and PyrexxAI. PyrexxAI is an independent contractor.
+        </p>
+
+        {/* 19. CHANGES TO THESE TERMS */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">19. CHANGES TO THESE TERMS</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          PyrexxAI may revise these Terms from time to time. When we make changes, we will:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-base text-gray-600 dark:text-gray-400 mb-6">
+          <li className="leading-relaxed">Update the 'Last Updated' date at the top of this document;</li>
+          <li className="leading-relaxed">Post a notice on our website for at least thirty (30) days after the revised Terms take effect;</li>
+          <li className="leading-relaxed">For material changes affecting existing clients, provide at least fourteen (14) days' advance email notice to the address on file.</li>
+        </ul>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          Your continued use of our website or Services after the effective date of revised Terms constitutes acceptance. If you do not agree to the revised Terms, you must stop using the Services and may terminate per Section 9.2. For clients in an active subscription, termination due solely to a material change in Terms will not trigger early termination fees.
+        </p>
+
+        {/* 20. CONTACT INFORMATION */}
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">20. CONTACT INFORMATION</h2>
+        <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+          For questions, concerns, or notices related to these Terms of Service, please contact us:
+        </p>
+        <div className="overflow-x-auto mb-12">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Contact Type</th>
+                <th className="bg-gray-100 dark:bg-gray-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800">Contact Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Legal / Terms Inquiries</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="mailto:legal@pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">legal@pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Privacy Inquiries</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="mailto:privacy@pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">privacy@pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">General Support</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="mailto:support@pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">support@pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Website</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800"><a href="https://www.pyrexxai.com" className="text-brand-600 dark:text-brand-400 hover:underline">www.pyrexxai.com</a></td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Response Time</td>
+                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800">Within 5 business days for general inquiries</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+      
+      <Footer />
+    </main>
+  );
+}
+</file>
+
+<file path="components/CookieBanner.tsx">
 "use client";
 
-import React, { useState } from "react";
-import { submitContactForm } from "@/app/actions/contact";
-import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Cookie } from "lucide-react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function ContactForm() {
-  const [isPending, setIsPending] = useState(false);
-  const [response, setResponse] = useState<{ success: boolean; message: string } | null>(null);
+export default function CookieBanner() {
+  const [show, setShow] = useState(false);
 
-  async function clientAction(formData: FormData) {
-    setIsPending(true);
-    setResponse(null);
-    const result = await submitContactForm(null, formData);
-    setResponse(result);
-    setIsPending(false);
-  }
+  useEffect(() => {
+    // Check if user has already made a choice
+    const consent = localStorage.getItem("pyrexxai-cookie-consent");
+    if (!consent) {
+      // Delay showing the banner slightly for better UX
+      const timer = setTimeout(() => setShow(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleAccept = () => {
+    localStorage.setItem("pyrexxai-cookie-consent", "accepted");
+    setShow(false);
+    // Future: Initialize PostHog/Google Analytics here
+  };
+
+  const handleDecline = () => {
+    localStorage.setItem("pyrexxai-cookie-consent", "declined");
+    setShow(false);
+    // Future: Disable trackers
+  };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm">
-      {response?.success ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-6">
-            <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Message Sent</h3>
-          <p className="text-gray-600 dark:text-gray-400">{response.message}</p>
-        </div>
-      ) : (
-        <form action={clientAction} className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Full Name *</label>
-              <input 
-                type="text" 
-                id="name" 
-                name="name" 
-                required 
-                className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"
-                placeholder="Dr. Sarah Jenkins"
-              />
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="fixed bottom-0 left-0 w-full z-[100] p-4 sm:p-6 pointer-events-none"
+        >
+          <div className="max-w-5xl mx-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl rounded-2xl p-6 pointer-events-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-brand-50 dark:bg-brand-900/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <Cookie className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+              </div>
+              <div>
+                <h4 className="text-gray-900 dark:text-white font-bold text-lg mb-1">We value your privacy</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies. Read our{" "}
+                  <Link href="/privacy-policy" className="text-brand-600 dark:text-brand-400 font-semibold hover:underline">
+                    Privacy Policy
+                  </Link>.
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Work Email *</label>
-              <input 
-                type="email" 
-                id="email" 
-                name="email" 
-                required 
-                className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"
-                placeholder="sarah@eliteclinic.com"
-              />
+            <div className="flex w-full md:w-auto items-center gap-3 flex-shrink-0">
+              <button
+                onClick={handleDecline}
+                className="flex-1 md:flex-none px-6 py-3 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 text-sm"
+              >
+                Decline
+              </button>
+              <button
+                onClick={handleAccept}
+                className="flex-1 md:flex-none px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-cta hover:shadow-cta-hover transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-sm"
+              >
+                Accept All
+              </button>
+              <button
+                onClick={handleDecline}
+                className="hidden md:flex p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 rounded-lg"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
-          <div className="space-y-2">
-            <label htmlFor="clinic" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Clinic / Organization Name</label>
-            <input 
-              type="text" 
-              id="clinic" 
-              name="clinic" 
-              className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"
-              placeholder="Elite MedSpa"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="message" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Project Scope or Question *</label>
-            <textarea 
-              id="message" 
-              name="message" 
-              required 
-              rows={5}
-              className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow resize-none"
-              placeholder="We are currently missing around 40 calls a week and use Jane App for our EMR. Looking for..."
-            ></textarea>
-          </div>
-
-          {response?.success === false && (
-            <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-lg border border-red-100 dark:border-red-800/50">
-              <AlertCircle className="w-5 h-5" />
-              <span className="text-sm font-medium">{response.message}</span>
-            </div>
-          )}
-
-          <button 
-            type="submit" 
-            disabled={isPending}
-            className="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 rounded-xl transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Processing...
-              </>
-            ) : (
-              "Submit Inquiry"
-            )}
-          </button>
-        </form>
+        </motion.div>
       )}
-    </div>
+    </AnimatePresence>
   );
 }
 </file>
@@ -776,6 +1894,41 @@ export default function StatsBar() {
 }
 </file>
 
+<file path="components/ThemeToggle.tsx">
+"use client";
+
+import * as React from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+
+export default function ThemeToggle() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  // Prevent hydration mismatch by only rendering after mount
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse"></div>;
+  }
+
+  const currentTheme = theme === 'system' ? resolvedTheme : theme;
+
+  return (
+    <button
+      onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
+      className="relative inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-gray-600 dark:text-gray-300"
+      aria-label="Toggle Dark Mode"
+    >
+      <Sun className={`w-5 h-5 absolute transition-all ${currentTheme === "dark" ? "opacity-0 rotate-90 scale-0" : "opacity-100 rotate-0 scale-100"}`} />
+      <Moon className={`w-5 h-5 absolute transition-all ${currentTheme === "dark" ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-0"}`} />
+    </button>
+  );
+}
+</file>
+
 <file path="components/TrustHIPAA.tsx">
 import React from "react";
 import { ShieldCheck, Lock, CheckCircle2, Settings } from "lucide-react";
@@ -873,47 +2026,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 </file>
 
-<file path="middleware.ts">
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-const BLOCKED_SCRAPERS = [
-  'GPTBot',
-  'CCBot',
-  'ClaudeBot',
-  'FacebookBot',
-  'AI2Bot',
-  'anthropic-ai',
-  'Omgili',
-  'Omgilibot',
-  'Bytespider'
-];
-
-export function middleware(request: NextRequest) {
-  const userAgent = request.headers.get('user-agent') || '';
-
-  const isBlocked = BLOCKED_SCRAPERS.some((bot) => userAgent.includes(bot));
-
-  if (isBlocked) {
-    return new NextResponse('Access Denied: AI Scraping is strictly prohibited on this domain.', {
-      status: 403,
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-    });
-  }
-
-  const response = NextResponse.next();
-  return response;
-}
-
-export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|logo.png).*)',
-  ],
-};
-</file>
-
 <file path="next-env.d.ts">
 /// <reference types="next" />
 /// <reference types="next/image-types/global" />
@@ -922,19 +2034,32 @@ export const config = {
 // see https://nextjs.org/docs/basic-features/typescript for more information.
 </file>
 
-<file path="public/sitemap.xml">
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 
-                            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-  <url>
-    <loc>https://pyrexxai.com/</loc>
-    <lastmod>2026-05-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-</urlset>
+<file path="public/.nojekyll">
+
+</file>
+
+<file path="public/site.webmanifest">
+{
+  "name": "MyWebSite",
+  "short_name": "MySite",
+  "icons": [
+    {
+      "src": "/public/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/public/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
 </file>
 
 <file path="README.md">
@@ -974,6 +2099,73 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+</file>
+
+<file path="app/actions/contact.ts">
+"use server";
+
+import { Resend } from "resend";
+import ContactTemplate from "@/components/emails/ContactTemplate";
+import React from "react";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function submitContactForm(prevState: any, formData: FormData) {
+  try {
+    // Honeypot check
+    const honeypot = formData.get("website") as string;
+    if (honeypot) {
+      // Silently succeed to trick the bot
+      return {
+        success: true,
+        message: "Your inquiry has been securely submitted. We will contact you shortly.",
+      };
+    }
+
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const clinic = formData.get("clinic") as string;
+    const message = formData.get("message") as string;
+
+    if (!name || !email || !message) {
+      return {
+        success: false,
+        message: "Please fill out all required fields.",
+      };
+    }
+
+    const { error } = await resend.emails.send({
+      from: "PyrexxAI Leads <leads@pyrexxai.com>", 
+      to: ["hello@pyrexxai.com"], 
+      subject: `New AI Integration Inquiry from ${clinic || name}`,
+      react: React.createElement(ContactTemplate, {
+        name,
+        email,
+        clinic,
+        message,
+      }),
+    });
+
+    if (error) {
+      console.error("Resend API Error:", error);
+      return {
+        success: false,
+        message: "Failed to send the message. Please try again later.",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Your inquiry has been securely submitted. We will contact you shortly.",
+    };
+  } catch (err) {
+    console.error("Server Action Error:", err);
+    return {
+      success: false,
+      message: "An unexpected error occurred.",
+    };
+  }
+}
 </file>
 
 <file path="app/ai-receptionist/page.tsx">
@@ -1082,6 +2274,148 @@ export default function AIReceptionistPage() {
 }
 </file>
 
+<file path="app/contact/page.tsx">
+import type { Metadata } from "next";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import ContactForm from "@/components/ContactForm";
+import { Mail, MapPin, Phone, MessageSquare } from "lucide-react";
+import { CAL_LINK } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  title: "Contact Us | PyrexxAI Enterprise Solutions",
+  description: "Get in touch with PyrexxAI. Request an audit, ask about EMR integrations, or secure a custom AI voice receptionist for your clinic.",
+  alternates: {
+    canonical: "https://pyrexxai.com/contact",
+  },
+};
+
+export default function ContactPage() {
+  return (
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+      <Navbar />
+      
+      <section className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6">
+            Let's modernize your <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent-600 dark:from-brand-400 dark:to-accent-400">
+              patient intake operations.
+            </span>
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Whether you need a custom EMR integration or a full-scale AI phone deployment, our engineering team is ready to assist.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-12 items-start">
+          <div className="lg:col-span-1 space-y-8">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Direct Channels</h3>
+              <ul className="space-y-6">
+                <li className="flex items-start">
+                  <Mail className="w-6 h-6 text-brand-600 dark:text-brand-400 mr-4 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">Email Us</h4>
+                    <a href="mailto:hello@pyrexxai.com" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                      hello@pyrexxai.com
+                    </a>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <Phone className="w-6 h-6 text-brand-600 dark:text-brand-400 mr-4 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">Call Our AI Agent</h4>
+                    <a href="tel:+15550000000" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                      +1 (302) 337-6310
+                    </a>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <MessageSquare className="w-6 h-6 text-brand-600 dark:text-brand-400 mr-4 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">Live Demo</h4>
+                    <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                      Schedule via Cal.com
+                    </a>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <MapPin className="w-6 h-6 text-brand-600 dark:text-brand-400 mr-4 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">Headquarters</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Serving Medical Clinics & MedSpas Nationwide
+                    </p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="lg:col-span-2">
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+      
+      <Footer />
+    </main>
+  );
+}
+</file>
+
+<file path="app/not-found.tsx">
+import Link from "next/link";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { AlertCircle, ArrowRight } from "lucide-react";
+import { CAL_LINK } from "@/lib/utils";
+
+export default function NotFound() {
+  return (
+    <main className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+      <Navbar />
+      
+      <section className="flex-grow flex items-center justify-center pt-32 pb-24 px-6">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="w-20 h-20 bg-gray-100 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-8">
+            <AlertCircle className="w-10 h-10 text-gray-400 dark:text-gray-600" />
+          </div>
+          <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6">
+            404
+          </h1>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+            Page Not Found
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-10 leading-relaxed max-w-lg mx-auto">
+            The page you are looking for doesn't exist or has been moved. Let's get you back on track to modernizing your Clinic.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <Link 
+              href="/"
+              className="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl text-base font-bold transition-all shadow-cta hover:shadow-cta-hover flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            >
+              Return Home <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+            <a 
+              href={CAL_LINK} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-gray-900 dark:text-white px-8 py-4 rounded-xl text-base font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+            >
+              Book a Demo
+            </a>
+          </div>
+        </div>
+      </section>
+      
+      <Footer />
+    </main>
+  );
+}
+</file>
+
 <file path="app/robots.ts">
 import { MetadataRoute } from "next";
 
@@ -1107,32 +2441,205 @@ export default function robots(): MetadataRoute.Robots {
 }
 </file>
 
-<file path="app/sitemap.ts">
-import { MetadataRoute } from "next";
+<file path="components/AIAssistant.tsx">
+"use client";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://pyrexxai.com";
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageSquare, X, Send, Bot } from "lucide-react";
+import Link from "next/link";
+import { CAL_LINK } from "@/lib/utils";
 
-  return [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/ai-receptionist`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/hipaa-compliance`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-  ];
+type Message = {
+  id: string;
+  role: "ai" | "user";
+  content: string; // Changed to strictly string to allow clean JSON serialization
+  isLink?: boolean;
+};
+
+const defaultMessage: Message = {
+  id: "1",
+  role: "ai",
+  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant. How can I help you modernize your clinic today?",
+};
+
+export default function AIAssistant() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [mounted, setMounted] = useState(false);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load chat history from session storage on mount
+  useEffect(() => {
+    setMounted(true);
+    const savedMessages = sessionStorage.getItem("pyrexxai-chat-history");
+    if (savedMessages) {
+      setMessages(JSON.parse(savedMessages));
+    } else {
+      setMessages([defaultMessage]);
+    }
+  }, []);
+
+  // Save chat history whenever messages update
+  useEffect(() => {
+    if (mounted) {
+      sessionStorage.setItem("pyrexxai-chat-history", JSON.stringify(messages));
+    }
+  }, [messages, mounted]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (isOpen) scrollToBottom();
+  }, [messages, isOpen, isTyping]);
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+
+    const newUserMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: inputValue,
+    };
+
+    setMessages((prev) => [...prev, newUserMsg]);
+    setInputValue("");
+    setIsTyping(true);
+
+    // Simulate AI response delay
+    setTimeout(() => {
+      setIsTyping(false);
+      const newAIMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        content: "That sounds like something our engineering team can help with! For the fastest response, I highly recommend scheduling a discovery call or submitting details via our contact form.",
+        isLink: true, // Flag to render links in UI
+      };
+      setMessages((prev) => [...prev, newAIMsg]);
+    }, 1500);
+  };
+
+  // Prevent hydration mismatch by returning nothing until mounted
+  if (!mounted) return null;
+
+  return (
+    <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="mb-4 w-[calc(100vw-3rem)] sm:w-[380px] h-[500px] max-h-[calc(100vh-8rem)] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          >
+            {/* Header */}
+            <div className="bg-brand-600 text-white px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm">PyrexxAI Assistant</h3>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="text-xs text-brand-100">Online</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-white/80 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-md p-1"
+                aria-label="Close chat"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Chat Area */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50 dark:bg-gray-900/50">
+              {messages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "bg-brand-600 text-white rounded-br-none" : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-bl-none shadow-sm"}`}>
+                    {msg.content}
+                    {msg.isLink && (
+                      <div className="mt-3 flex flex-col gap-2">
+                        <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" className="block text-center bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:hover:bg-brand-900/50 text-brand-700 dark:text-brand-300 font-semibold py-2 rounded-lg border border-brand-200 dark:border-brand-800 transition-colors">
+                          Book a Demo
+                        </a>
+                        <Link href="/contact" onClick={() => setIsOpen(false)} className="block text-center bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold py-2 rounded-lg transition-colors">
+                          Contact Us
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-bl-none px-4 py-4 shadow-sm flex items-center space-x-1.5">
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "0ms" }}></span>
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "150ms" }}></span>
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "300ms" }}></span>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800">
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Ask a question..."
+                  className="w-full bg-gray-100 dark:bg-gray-900 border-none text-gray-900 dark:text-white text-sm rounded-full pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim()}
+                  className="absolute right-2 w-8 h-8 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 dark:disabled:bg-gray-700 text-white rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
+                  aria-label="Send message"
+                >
+                  <Send className="w-4 h-4 ml-0.5" />
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-14 h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950 relative"
+        aria-label={isOpen ? "Close assistant" : "Open assistant"}
+      >
+        {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
+        {!isOpen && (
+          <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white dark:border-gray-950 rounded-full"></span>
+        )}
+      </button>
+    </div>
+  );
+}
+</file>
+
+<file path="components/ThemeProvider.tsx">
+"use client";
+
+import * as React from "react";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+
+export function ThemeProvider({ children, ...props }: React.ComponentProps<typeof NextThemesProvider>) {
+  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
 }
 </file>
 
@@ -1143,71 +2650,6 @@ module.exports = {
     autoprefixer: {},
   },
 };
-</file>
-
-<file path="tailwind.config.ts">
-import type { Config } from "tailwindcss";
-
-const config: Config = {
-  // Automatically use the system's light/dark mode preference
-  darkMode: 'media', 
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-      },
-      colors: {
-        brand: {
-          50: "#EFF6FF",
-          100: "#DBEAFE",
-          200: "#BFDBFE",
-          300: "#93C5FD",
-          400: "#60A5FA",
-          500: "#3B82F6",
-          600: "#2563EB",
-          700: "#1D4ED8",
-          800: "#1E40AF",
-          900: "#1E3A8A",
-        },
-        accent: {
-          50: "#F5F3FF",
-          100: "#EDE9FE",
-          500: "#8B5CF6",
-          600: "#7C3AED",
-          700: "#6D28D9",
-        },
-      },
-      animation: {
-        "fade-up": "fadeUp 0.6s ease-out forwards",
-        "pulse-glow": "pulseGlow 2s ease-in-out infinite",
-      },
-      keyframes: {
-        fadeUp: {
-          "0%": { opacity: "0", transform: "translateY(20px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        pulseGlow: {
-          "0%, 100%": { boxShadow: "0 0 0 0 rgba(37, 99, 235, 0.4)" },
-          "50%": { boxShadow: "0 0 0 12px rgba(37, 99, 235, 0)" },
-        },
-      },
-      boxShadow: {
-        "cta": "0 4px 14px 0 rgba(37, 99, 235, 0.39)",
-        "cta-hover": "0 6px 20px rgba(37, 99, 235, 0.23)",
-        "card": "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)",
-        "card-hover": "0 8px 30px rgba(0,0,0,0.10)",
-      },
-    },
-  },
-  plugins: [],
-};
-
-export default config;
 </file>
 
 <file path="tsconfig.json">
@@ -1297,6 +2739,167 @@ body {
     animation: none;
     box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
   }
+}
+</file>
+
+<file path="app/sitemap.ts">
+import { MetadataRoute } from "next";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = "https://pyrexxai.com";
+
+  return [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/ai-receptionist`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/hipaa-compliance`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/privacy-policy`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/terms-of-service`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+  ];
+}
+</file>
+
+<file path="components/ContactForm.tsx">
+"use client";
+
+import React, { useState, useRef } from "react";
+import { submitContactForm } from "@/app/actions/contact";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+export default function ContactForm() {
+  const [isPending, setIsPending] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  async function clientAction(formData: FormData) {
+    setIsPending(true);
+    const result = await submitContactForm(null, formData);
+    
+    if (result.success) {
+      toast.success("Inquiry Submitted", {
+        description: result.message,
+      });
+      formRef.current?.reset(); // Clear the form smoothly
+    } else {
+      toast.error("Submission Failed", {
+        description: result.message,
+      });
+    }
+    
+    setIsPending(false);
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm">
+      <form ref={formRef} action={clientAction} className="space-y-6">
+        {/* Honeypot Field for Spam Bots */}
+        <input 
+          type="text" 
+          name="website" 
+          tabIndex={-1} 
+          autoComplete="off" 
+          style={{ display: "none" }} 
+          aria-hidden="true" 
+        />
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label htmlFor="name" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Full Name *</label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              required 
+              className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"
+              placeholder="Dr. Sarah Jenkins"
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Work Email *</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              required 
+              className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"
+              placeholder="sarah@eliteclinic.com"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="clinic" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Clinic / Organization Name</label>
+          <input 
+            type="text" 
+            id="clinic" 
+            name="clinic" 
+            className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"
+            placeholder="Elite MedSpa"
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="message" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Project Scope or Question *</label>
+          <textarea 
+            id="message" 
+            name="message" 
+            required 
+            rows={5}
+            className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow resize-none"
+            placeholder="We are currently missing around 40 calls a week and use Jane App for our EMR. Looking for..."
+          ></textarea>
+        </div>
+
+        <button 
+          type="submit" 
+          disabled={isPending}
+          className="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 rounded-xl transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+        >
+          {isPending ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin mr-2" /> Processing...
+            </>
+          ) : (
+            "Submit Inquiry"
+          )}
+        </button>
+      </form>
+    </div>
+  );
 }
 </file>
 
@@ -1517,143 +3120,68 @@ export default function Offerings() {
 }
 </file>
 
-<file path="components/SocialProof.tsx">
-import React from "react";
+<file path="tailwind.config.ts">
+import type { Config } from "tailwindcss";
 
-export default function SocialProof() {
-  return (
-    <section className="py-16 bg-gray-50/50 dark:bg-gray-900/50 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-6">
-        <p className="text-center text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-8">
-          Trusted by growth-focused clinics across the US
-        </p>
-        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 dark:opacity-40 grayscale">
-          {['Luxe Aesthetics', 'Smile Dental Studio', 'Renew Therapy Center', 'Elite MedSpa', 'Vitality Clinic'].map((logo, i) => (
-            <div key={i} className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center space-x-2">
-              <div className="w-6 h-6 rounded bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
-              <span className="whitespace-nowrap">{logo}</span>
-            </div>
-          ))}
-        </div>
-        <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-8">
-          * Client names shown for illustrative purposes. Real case studies shared on discovery call.
-        </p>
-      </div>
-    </section>
-  );
-}
-</file>
-
-<file path="package.json">
-{
-  "name": "pyrexx-ai",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+const config: Config = {
+  darkMode: 'class', // Changed from 'media' to 'class' to allow manual toggling
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+      },
+      colors: {
+        brand: {
+          50: "#EFF6FF",
+          100: "#DBEAFE",
+          200: "#BFDBFE",
+          300: "#93C5FD",
+          400: "#60A5FA",
+          500: "#3B82F6",
+          600: "#2563EB",
+          700: "#1D4ED8",
+          800: "#1E40AF",
+          900: "#1E3A8A",
+        },
+        accent: {
+          50: "#F5F3FF",
+          100: "#EDE9FE",
+          500: "#8B5CF6",
+          600: "#7C3AED",
+          700: "#6D28D9",
+        },
+      },
+      animation: {
+        "fade-up": "fadeUp 0.6s ease-out forwards",
+        "pulse-glow": "pulseGlow 2s ease-in-out infinite",
+      },
+      keyframes: {
+        fadeUp: {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        pulseGlow: {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(37, 99, 235, 0.4)" },
+          "50%": { boxShadow: "0 0 0 12px rgba(37, 99, 235, 0)" },
+        },
+      },
+      boxShadow: {
+        "cta": "0 4px 14px 0 rgba(37, 99, 235, 0.39)",
+        "cta-hover": "0 6px 20px rgba(37, 99, 235, 0.23)",
+        "card": "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)",
+        "card-hover": "0 8px 30px rgba(0,0,0,0.10)",
+      },
+    },
   },
-  "dependencies": {
-    "@react-email/components": "^1.0.12",
-    "clsx": "^2.1.1",
-    "framer-motion": "^11.18.2",
-    "lucide-react": "^0.350.0",
-    "next": "14.2.0",
-    "react": "^18",
-    "react-dom": "^18",
-    "resend": "^6.12.3",
-    "tailwind-merge": "^2.6.1"
-  },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "autoprefixer": "^10.4.19",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.0",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
-  }
-}
-</file>
+  plugins: [],
+};
 
-<file path="components/Footer.tsx">
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Bot, Instagram, Linkedin, Facebook } from "lucide-react";
-import { CAL_LINK } from "@/lib/utils";
-
-const XIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
-
-export default function Footer() {
-  return (
-    <footer className="bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 pt-16 pb-8 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-          <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-3 mb-6 group">
-              <div className="relative w-9 h-9 rounded-full bg-brand-600 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform shadow-sm">
-                <Image src="/logo.png" alt="PyrexxAI Logo" fill sizes="36px" quality={100} className="object-cover z-10" />
-                <Bot className="text-white w-5 h-5 absolute z-0" />
-              </div>
-              <span className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">PyrexxAI</span>
-            </Link>
-            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6 max-w-xs">
-              Intelligent voice AI implementations for MedSpas, Dental & Therapy Clinics. Stop missing calls, start scaling.
-            </p>
-            <div className="flex gap-4">
-              <a href="#" aria-label="Instagram" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Instagram className="w-5 h-5" /></a>
-              <a href="#" aria-label="X (formerly Twitter)" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><XIcon className="w-5 h-5" /></a>
-              <a href="#" aria-label="LinkedIn" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Linkedin className="w-5 h-5" /></a>
-              <a href="#" aria-label="Facebook" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Facebook className="w-5 h-5" /></a>
-            </div>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Solutions</h4>
-            <ul className="space-y-3">
-              <li><Link href="/ai-receptionist" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">AI Receptionist</Link></li>
-              <li><Link href="/#solutions" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Lead Intake Agent</Link></li>
-              <li><Link href="/#how-it-works" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">EMR Integration</Link></li>
-              <li><Link href="/#how-it-works" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Custom AI Training</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Resources</h4>
-            <ul className="space-y-3">
-              <li><Link href="/#roi" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">ROI Calculator</Link></li>
-              <li><Link href="/#results" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Client Results</Link></li>
-              <li><Link href="/hipaa-compliance" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">HIPAA Compliance</Link></li>
-              <li><Link href="/#faq" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Help & FAQ</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Company</h4>
-            <ul className="space-y-3">
-              <li><Link href="/#how-it-works" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">About Us</Link></li>
-              <li><Link href="/contact" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Contact</Link></li>
-              <li><Link href="/hipaa-compliance" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/hipaa-compliance" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Terms of Service</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-gray-100 dark:border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-400 dark:text-gray-500">© {new Date().getFullYear()} PyrexxAI. All rights reserved.</p>
-          <div className="flex gap-4">
-            <span className="text-sm text-gray-400 dark:text-gray-500">Engineered for seamless patient experiences.</span>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
+export default config;
 </file>
 
 <file path="components/Navbar.tsx">
@@ -1663,11 +3191,13 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, Menu, X as CloseIcon } from "lucide-react";
+import { Bot, Menu, X as CloseIcon, ChevronDown } from "lucide-react";
 import { CAL_LINK } from "@/lib/utils";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [mobileCompanyOpen, setMobileCompanyOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -1703,27 +3233,43 @@ export default function Navbar() {
           <Link href="/ai-receptionist" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">AI Receptionist</Link>
           <Link href="/#how-it-works" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">How it Works</Link>
           <Link href="/hipaa-compliance" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">HIPAA Compliance</Link>
-          <Link href="/#faq" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">FAQ</Link>
+          
+          {/* Company Dropdown */}
+          <div className="relative group">
+            <button className="flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
+              Company <ChevronDown className="w-4 h-4 group-hover:rotate-180 transition-transform duration-200" />
+            </button>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 overflow-hidden">
+              <div className="py-2 flex flex-col">
+                <Link href="/about" className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors">About Us</Link>
+                <Link href="/contact" className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors">Contact Us</Link>
+                <Link href="/#faq" className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors">Help & Support</Link>
+                <Link href="/careers" className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors">Careers</Link>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <div className="hidden md:block">
-          <a
-            href={CAL_LINK}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
+        <div className="flex items-center space-x-4">
+          <ThemeToggle />
+          <div className="hidden md:block">
+            <a
+              href={CAL_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
+            >
+              Book a Free Demo &rarr;
+            </a>
+          </div>
+          <button 
+            className="md:hidden p-2 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
           >
-            Book a Free Demo &rarr;
-          </a>
+            {isOpen ? <CloseIcon className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
-
-        <button 
-          className="md:hidden p-2 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label={isOpen ? "Close menu" : "Open menu"}
-        >
-          {isOpen ? <CloseIcon className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
       </div>
 
       <AnimatePresence>
@@ -1733,13 +3279,38 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-20 left-0 w-full h-[calc(100vh-80px)] bg-white dark:bg-gray-950 shadow-xl p-6 flex flex-col space-y-6 md:hidden z-40 overflow-y-auto"
+            className="absolute top-20 left-0 w-full h-[calc(100vh-80px)] bg-white dark:bg-gray-950 shadow-xl p-6 flex flex-col space-y-4 md:hidden z-40 overflow-y-auto"
           >
             <Link href="/ai-receptionist" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">AI Receptionist</Link>
             <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">How it Works</Link>
             <Link href="/hipaa-compliance" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">HIPAA Compliance</Link>
-            <Link href="/#faq" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">FAQ</Link>
-            <div className="pt-4">
+            
+            {/* Mobile Company Accordion */}
+            <div className="py-2 border-b border-gray-100 dark:border-gray-800">
+              <button 
+                onClick={() => setMobileCompanyOpen(!mobileCompanyOpen)} 
+                className="flex items-center justify-between w-full text-gray-900 dark:text-white text-lg font-medium focus-visible:outline-none"
+              >
+                Company <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${mobileCompanyOpen ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {mobileCompanyOpen && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }} 
+                    animate={{ height: "auto", opacity: 1 }} 
+                    exit={{ height: 0, opacity: 0 }} 
+                    className="flex flex-col space-y-3 mt-4 pl-4 overflow-hidden"
+                  >
+                    <Link href="/about" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">About Us</Link>
+                    <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Contact Us</Link>
+                    <Link href="/#faq" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Help & Support</Link>
+                    <Link href="/careers" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Careers</Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="pt-6">
               <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" onClick={() => setIsOpen(false)} className="block w-full bg-brand-600 text-white px-5 py-4 rounded-xl text-center font-bold shadow-cta text-lg">
                 Book a Free Demo &rarr;
               </a>
@@ -1762,6 +3333,15 @@ const nextConfig = {
     remotePatterns: [], 
   },
   compress: true,
+  // Next.js 14 specific config to bypass Webpack for React Email
+  experimental: {
+    serverComponentsExternalPackages: [
+      '@react-email/components',
+      '@react-email/render',
+      'html-to-text',
+      'resend'
+    ],
+  },
   async headers() {
     return [
       {
@@ -1793,13 +3373,168 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+module.exports = nextConfig;
+</file>
+
+<file path="components/Footer.tsx">
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Bot, Linkedin, Github } from "lucide-react";
+import { CAL_LINK } from "@/lib/utils";
+
+const XIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
+export default function Footer() {
+  return (
+    <footer className="bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 pt-16 pb-8 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+          <div className="md:col-span-1">
+            <Link href="/" className="flex items-center gap-3 mb-6 group">
+              <div className="relative w-9 h-9 rounded-full bg-brand-600 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform shadow-sm">
+                <Image src="/logo.png" alt="PyrexxAI Logo" fill sizes="36px" quality={100} className="object-cover z-10" />
+                <Bot className="text-white w-5 h-5 absolute z-0" />
+              </div>
+              <span className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">PyrexxAI</span>
+            </Link>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6 max-w-xs">
+              Intelligent voice AI implementations for MedSpas, Dental & Therapy Clinics. Stop missing calls, start scaling.
+            </p>
+            <div className="flex gap-4">
+              <a href="https://github.com/Pyrexx-AI" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Github className="w-5 h-5" /></a>
+              <a href="#" aria-label="X (formerly Twitter)" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><XIcon className="w-5 h-5" /></a>
+              <a href="#" aria-label="LinkedIn" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Linkedin className="w-5 h-5" /></a>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Solutions</h4>
+            <ul className="space-y-3">
+              <li><Link href="/ai-receptionist" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">AI Receptionist</Link></li>
+              <li><Link href="/#solutions" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Lead Intake Agent</Link></li>
+              <li><Link href="/#how-it-works" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">EMR Integration</Link></li>
+              <li><Link href="/#how-it-works" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Custom AI Training</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Resources</h4>
+            <ul className="space-y-3">
+              <li><Link href="/#roi" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">ROI Calculator</Link></li>
+              <li><Link href="/#results" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Client Results</Link></li>
+              <li><Link href="/hipaa-compliance" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">HIPAA Compliance</Link></li>
+              <li><Link href="/#faq" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Help & FAQ</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Company</h4>
+            <ul className="space-y-3">
+              <li><Link href="/about" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">About Us</Link></li>
+              <li><Link href="/contact" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Contact</Link></li>
+              <li><Link href="/privacy-policy" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms-of-service" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Terms of Service</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-gray-100 dark:border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-400 dark:text-gray-500">© {new Date().getFullYear()} PyrexxAI. All rights reserved.</p>
+          <div className="flex gap-4">
+            <span className="text-sm text-gray-400 dark:text-gray-500">Engineered for seamless patient experiences.</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "pyrexx-ai",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@react-email/components": "^1.0.12",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.18.2",
+    "lucide-react": "^0.350.0",
+    "next": "14.2.0",
+    "next-themes": "^0.4.6",
+    "react": "^18",
+    "react-dom": "^18",
+    "resend": "^6.12.3",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^2.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.0",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="app/page.tsx">
+import dynamic from 'next/dynamic';
+
+import Navbar from '@/components/Navbar';
+import Hero from '@/components/Hero';
+import StatsBar from '@/components/StatsBar';
+import Results from '@/components/Results';
+import TrustHIPAA from '@/components/TrustHIPAA';
+import CTA from '@/components/CTA';
+import Footer from '@/components/Footer';
+
+const ROICalculator = dynamic(() => import('@/components/ROICalculator'), { ssr: true });
+const Offerings = dynamic(() => import('@/components/Offerings'), { ssr: true });
+const HowItWorks = dynamic(() => import('@/components/HowItWorks'), { ssr: true });
+const CustomPositioning = dynamic(() => import('@/components/CustomPositioning'), { ssr: true });
+const FAQ = dynamic(() => import('@/components/FAQ'), { ssr: true });
+
+export default function PyrexxAILandingPage() {
+  return (
+    <main className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 selection:bg-brand-100 dark:selection:bg-brand-900/50 selection:text-brand-900 dark:selection:text-brand-100 transition-colors duration-300">
+      <Navbar />
+      <Hero />
+      <StatsBar />
+      <ROICalculator />
+      <Offerings />
+      <HowItWorks />
+      <Results />
+      <TrustHIPAA />
+      <CustomPositioning />
+      <FAQ />
+      <CTA />
+      <Footer />
+    </main>
+  );
+}
 </file>
 
 <file path="app/layout.tsx">
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
+import AIAssistant from "@/components/AIAssistant";
+import CookieBanner from "@/components/CookieBanner";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -1807,6 +3542,15 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#030712" }, 
+  ],
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pyrexxai.com"),
@@ -1817,9 +3561,25 @@ export const metadata: Metadata = {
   description:
     "PyrexxAI deploys custom-trained AI voice receptionists for MedSpas, dental clinics, and therapy practices. Capture every call 24/7, book appointments automatically, and eliminate missed revenue — HIPAA-compliant.",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "mask-icon",
+        url: "/safari-pinned-tab.svg",
+        color: "#2563eb",
+      },
+    ],
+  },
+  manifest: "/site.webmanifest",
+  appleWebApp: {
+    title: "PyrexxAI",
+    statusBarStyle: "default",
   },
   keywords: [
     "AI receptionist for medspa",
@@ -1886,13 +3646,11 @@ export default function RootLayout({
     url: "https://pyrexxai.com",
     logo: "https://pyrexxai.com/logo.png",
     sameAs: [
-      "https://www.linkedin.com/company/pyrexxai",
-      "https://twitter.com/pyrexxai",
-      "https://www.instagram.com/pyrexxai"
+      "https://github.com/PyrexxAI"
     ],
     contactPoint: {
       "@type": "ContactPoint",
-      email: "clifford.pyrexxai@gmail.com",
+      email: "hello@pyrexxai.com",
       contactType: "sales",
       availableLanguage: "English",
       areaServed: "US"
@@ -1922,13 +3680,6 @@ export default function RootLayout({
     areaServed: "US",
     description:
       "Custom-trained AI voice agents for MedSpas, dental clinics, and therapy practices. Handles inbound calls, books appointments, qualifies leads, and integrates with EMR systems — HIPAA-compliant.",
-    offers: {
-      "@type": "Offer",
-      price: "1499",
-      priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
-      description: "Comprehensive AI receptionist setup, custom voice model training, EMR integration, and weekly optimization."
-    },
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "PyrexxAI Services",
@@ -1996,70 +3747,97 @@ export default function RootLayout({
       },
       {
         "@type": "Question",
+        name: "How is PyrexxAI different from a general AI chatbot?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "We are a full-service technical partner, not a DIY software platform. We custom-train voice AI specific to your practice, integrate it directly with your existing EMR, and continually optimize its performance."
+        }
+      },
+      {
+        "@type": "Question",
         name: "Is your AI voice agent HIPAA compliant?",
         acceptedAnswer: {
           "@type": "Answer",
           text: "Yes, absolutely. Our entire architecture is HIPAA compliant by design. We provide a Business Associate Agreement (BAA) and ensure zero Protected Health Information (PHI) is stored beyond the active session.",
         },
       },
+      {
+        "@type": "Question",
+        name: "How long does it take to go live?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "From our initial kickoff call to your AI receptionist handling live patient calls, the standard timeline is exactly 14 days. This includes mapping your workflows, voice training, and EMR integration."
+        }
+      },
+      {
+        "@type": "Question",
+        name: "Does the AI book directly into my EMR/practice management system?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. We build custom integrations to read your real-time availability and write appointments directly into your existing schedule. No manual data entry is required from your staff."
+        }
+      },
+      {
+        "@type": "Question",
+        name: "What happens if the AI can't answer a patient's question?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "If a query falls outside the AI's training or involves a complex medical question, it elegantly escalates the interaction. It takes a detailed message and immediately routes it to your human staff via SMS, email, or your CRM."
+        }
+      },
+      {
+        "@type": "Question",
+        name: "How does PyrexxAI handle after-hours emergencies?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "We configure custom routing rules for your practice. Routine inquiries are answered and booked, while calls flagged by the caller as medical emergencies are immediately forwarded to your designated on-call doctor."
+        }
+      },
+      {
+        "@type": "Question",
+        name: "What is the pricing model?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "We operate on a transparent monthly retainer that includes the AI infrastructure, continuous optimization, and support. Pricing is custom-quoted based on your clinic's call volume and EMR complexity. Because we replace expensive after-hours services and capture lost leads, most clinics see positive ROI in the first 30 days."
+        }
+      },
+      {
+        "@type": "Question",
+        name: "Can the AI handle multiple calls simultaneously?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. Your PyrexxAI receptionist can handle an unlimited number of concurrent inbound calls. Whether you receive two calls at once or fifty, no patient is ever put on hold or sent to voicemail."
+        }
+      },
+      {
+        "@type": "Question",
+        name: "Do I need to change my existing phone number or system?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "No. You keep your current phone numbers and VOIP system. We simply set up conditional forwarding so that missed calls, or calls during specific hours, are instantly routed to your AI agent."
+        }
+      }
     ],
   };
 
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/logo.png" sizes="any" />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       </head>
       <body className={`${inter.variable} font-sans antialiased text-gray-900 bg-white dark:bg-gray-950 dark:text-gray-50 transition-colors duration-300`}>
-        <Script id="schema-org" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
-        <Script id="schema-website" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
-        <Script id="schema-service" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
-        <Script id="schema-howto" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
-        <Script id="schema-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <Toaster position="bottom-right" richColors />
+          <AIAssistant />
+          {children}
+          <CookieBanner />
+        </ThemeProvider>
       </body>
     </html>
-  );
-}
-</file>
-
-<file path="app/page.tsx">
-import dynamic from 'next/dynamic';
-
-// Static/Above-the-fold components
-import Navbar from '@/components/Navbar';
-import Hero from '@/components/Hero';
-import StatsBar from '@/components/StatsBar';
-import SocialProof from '@/components/SocialProof';
-import Results from '@/components/Results';
-import TrustHIPAA from '@/components/TrustHIPAA';
-import CTA from '@/components/CTA';
-import Footer from '@/components/Footer';
-
-// Dynamically imported components (Lazy loaded to reduce initial JS payload)
-const ROICalculator = dynamic(() => import('@/components/ROICalculator'), { ssr: true });
-const Offerings = dynamic(() => import('@/components/Offerings'), { ssr: true });
-const HowItWorks = dynamic(() => import('@/components/HowItWorks'), { ssr: true });
-const CustomPositioning = dynamic(() => import('@/components/CustomPositioning'), { ssr: true });
-const FAQ = dynamic(() => import('@/components/FAQ'), { ssr: true });
-
-export default function PyrexxAILandingPage() {
-  return (
-    <main className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 selection:bg-brand-100 dark:selection:bg-brand-900/50 selection:text-brand-900 dark:selection:text-brand-100 transition-colors duration-300">
-      <Navbar />
-      <Hero />
-      <StatsBar />
-      <ROICalculator />
-      <SocialProof />
-      <Offerings />
-      <HowItWorks />
-      <Results />
-      <TrustHIPAA />
-      <CustomPositioning />
-      <FAQ />
-      <CTA />
-      <Footer />
-    </main>
   );
 }
 </file>

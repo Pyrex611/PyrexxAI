@@ -49,7 +49,7 @@ export default function ContactPage() {
                   <Phone className="w-6 h-6 text-brand-600 dark:text-brand-400 mr-4 flex-shrink-0" />
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white">Call Our AI Agent</h4>
-                    <a href="tel:+15550000000" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                    <a href="tel:+13023376310" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
                       +1 (302) 337-6310
                     </a>
                   </div>

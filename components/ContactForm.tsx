@@ -14,14 +14,10 @@ export default function ContactForm() {
     const result = await submitContactForm(null, formData);
     
     if (result.success) {
-      toast.success("Inquiry Submitted", {
-        description: result.message,
-      });
-      formRef.current?.reset(); // Clear the form smoothly
+      toast.success("Inquiry Submitted", { description: result.message });
+      formRef.current?.reset(); 
     } else {
-      toast.error("Submission Failed", {
-        description: result.message,
-      });
+      toast.error("Submission Failed", { description: result.message });
     }
     
     setIsPending(false);
@@ -30,74 +26,52 @@ export default function ContactForm() {
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm">
       <form ref={formRef} action={clientAction} className="space-y-6">
-        {/* Honeypot Field for Spam Bots */}
-        <input 
-          type="text" 
-          name="website" 
-          tabIndex={-1} 
-          autoComplete="off" 
-          style={{ display: "none" }} 
-          aria-hidden="true" 
-        />
+        <input type="text" name="website" tabIndex={-1} autoComplete="off" style={{ display: "none" }} aria-hidden="true" />
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Full Name *</label>
-            <input 
-              type="text" 
-              id="name" 
-              name="name" 
-              required 
-              className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"
-              placeholder="Dr. Sarah Jenkins"
-            />
+            <input type="text" id="name" name="name" required className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Dr. Sarah Jenkins" />
           </div>
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Work Email *</label>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              required 
-              className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"
-              placeholder="sarah@eliteclinic.com"
-            />
+            <input type="email" id="email" name="email" required className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="sarah@eliteclinic.com" />
           </div>
         </div>
+
         <div className="space-y-2">
-          <label htmlFor="clinic" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Clinic / Organization Name</label>
-          <input 
-            type="text" 
-            id="clinic" 
-            name="clinic" 
-            className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow"
-            placeholder="Elite MedSpa"
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="message" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Project Scope or Question *</label>
-          <textarea 
-            id="message" 
-            name="message" 
-            required 
-            rows={5}
-            className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow resize-none"
-            placeholder="We are currently missing around 40 calls a week and use Jane App for our EMR. Looking for..."
-          ></textarea>
+          <label htmlFor="clinic" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Clinic / Organization Name *</label>
+          <input type="text" id="clinic" name="clinic" required className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Elite MedSpa" />
         </div>
 
-        <button 
-          type="submit" 
-          disabled={isPending}
-          className="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 rounded-xl transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-        >
-          {isPending ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin mr-2" /> Processing...
-            </>
-          ) : (
-            "Submit Inquiry"
-          )}
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label htmlFor="practiceType" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Practice Type</label>
+            <select id="practiceType" name="practiceType" className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 appearance-none">
+              <option value="MedSpa">MedSpa / Aesthetics</option>
+              <option value="Dental">Dental Clinic</option>
+              <option value="Therapy">Therapy / Mental Health</option>
+              <option value="Other">Other Medical Practice</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="callVolume" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Monthly Call Volume</label>
+            <select id="callVolume" name="callVolume" className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 appearance-none">
+              <option value="Under 100">Under 100 calls</option>
+              <option value="100-500">100 - 500 calls</option>
+              <option value="500+">500+ calls</option>
+              <option value="Not Sure">Not Sure</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="message" className="text-sm font-semibold text-gray-900 dark:text-gray-200">Current EMR & Project Scope *</label>
+          <textarea id="message" name="message" required rows={4} className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" placeholder="We use Jane App and want to automate our after-hours booking..."></textarea>
+        </div>
+
+        <button type="submit" disabled={isPending} className="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 rounded-xl transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center">
+          {isPending ? <><Loader2 className="w-5 h-5 animate-spin mr-2" /> Processing...</> : "Submit Inquiry"}
         </button>
       </form>
     </div>

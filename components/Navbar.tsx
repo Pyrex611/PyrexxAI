@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,7 +10,19 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [desktopCompanyOpen, setDesktopCompanyOpen] = useState(false);
   const [mobileCompanyOpen, setMobileCompanyOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDesktopCompanyOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -46,20 +58,33 @@ export default function Navbar() {
           <Link href="/ai-receptionist" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">AI Receptionist</Link>
           <Link href="/#how-it-works" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">How it Works</Link>
           <Link href="/hipaa-compliance" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">HIPAA Compliance</Link>
+          <Link href="/contact" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">Contact Us</Link>
           
-          {/* Company Dropdown */}
-          <div className="relative group">
-            <button className="flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
-              Company <ChevronDown className="w-4 h-4 group-hover:rotate-180 transition-transform duration-200" />
+          <div className="relative" ref={dropdownRef}>
+            <button 
+              onClick={() => setDesktopCompanyOpen(!desktopCompanyOpen)}
+              aria-expanded={desktopCompanyOpen}
+              className="flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+            >
+              Company <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${desktopCompanyOpen ? 'rotate-180' : ''}`} />
             </button>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 overflow-hidden">
-              <div className="py-2 flex flex-col">
-                <Link href="/about" className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors">About Us</Link>
-                <Link href="/contact" className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors">Contact Us</Link>
-                <Link href="/#faq" className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors">Help & Support</Link>
-                <Link href="/careers" className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors">Careers</Link>
-              </div>
-            </div>
+            <AnimatePresence>
+              {desktopCompanyOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl overflow-hidden"
+                >
+                  <div className="py-2 flex flex-col">
+                    <Link href="/about" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">About Us</Link>
+                    <Link href="/#faq" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Help & Support</Link>
+                    <Link href="/careers" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Careers</Link>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
         
@@ -78,6 +103,7 @@ export default function Navbar() {
           <button 
             className="md:hidden p-2 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
             onClick={() => setIsOpen(!isOpen)}
+            aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
           >
             {isOpen ? <CloseIcon className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -97,8 +123,8 @@ export default function Navbar() {
             <Link href="/ai-receptionist" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">AI Receptionist</Link>
             <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">How it Works</Link>
             <Link href="/hipaa-compliance" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">HIPAA Compliance</Link>
+            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">Contact Us</Link>
             
-            {/* Mobile Company Accordion */}
             <div className="py-2 border-b border-gray-100 dark:border-gray-800">
               <button 
                 onClick={() => setMobileCompanyOpen(!mobileCompanyOpen)} 
@@ -115,7 +141,6 @@ export default function Navbar() {
                     className="flex flex-col space-y-3 mt-4 pl-4 overflow-hidden"
                   >
                     <Link href="/about" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">About Us</Link>
-                    <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Contact Us</Link>
                     <Link href="/#faq" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Help & Support</Link>
                     <Link href="/careers" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Careers</Link>
                   </motion.div>

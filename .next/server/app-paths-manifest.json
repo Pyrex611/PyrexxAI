@@ -1,12 +1,7 @@
 {
-  "/robots.txt/route": "app/robots.txt/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/sitemap.xml/route": "app/sitemap.xml/route.js",
-  "/page": "app/page.js",
   "/contact/page": "app/contact/page.js",
+  "/page": "app/page.js",
   "/about/page": "app/about/page.js",
-  "/ai-receptionist/page": "app/ai-receptionist/page.js",
-  "/privacy-policy/page": "app/privacy-policy/page.js",
-  "/terms-of-service/page": "app/terms-of-service/page.js",
-  "/hipaa-compliance/page": "app/hipaa-compliance/page.js"
+  "/hipaa-compliance/page": "app/hipaa-compliance/page.js",
+  "/careers/page": "app/careers/page.js"
 }
