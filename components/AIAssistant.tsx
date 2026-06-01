@@ -10,14 +10,19 @@ type Message = {
   id: string;
   role: "ai" | "user";
   content: string;
-  isLink?: boolean;
 };
 
 const defaultMessage: Message = {
   id: "1",
   role: "ai",
-  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant powered by Gemini. How can I help you modernize your clinic today?",
+  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant. Ask me anything about our EMR integrations, HIPAA compliance, or pricing setup!",
 };
+
+const SUGGESTION_CHIPS = [
+  { label: "EMR Integrations", query: "What EMR systems does the AI integrate with?" },
+  { label: "HIPAA Compliance", query: "Is this voice AI fully HIPAA compliant?" },
+  { label: "Pricing Setup", query: "How much does PyrexxAI cost?" },
+];
 
 export default function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,19 +57,74 @@ export default function AIAssistant() {
     if (isOpen) scrollToBottom();
   }, [messages, isOpen, isTyping]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
+  // Zero-dependency, ultra-lightweight Markdown parser for link rendering and bold text
+  const renderMessageContent = (text: string, role: "ai" | "user") => {
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const boldRegex = /\*\*([^*]+)\*\*/g;
+    
+    // Process markdown bold tags first
+    let processedText = text.replace(boldRegex, "<strong>$1</strong>");
 
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(processedText)) !== null) {
+      const [fullMatch, linkText, linkUrl] = match;
+      const index = match.index;
+
+      if (index > lastIndex) {
+        parts.push(
+          <span 
+            key={`text-${index}`} 
+            dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex, index) }} 
+          />
+        );
+      }
+
+      const isExternal = linkUrl.startsWith("http") || linkUrl.startsWith("https");
+      const linkClass = role === "user" 
+        ? "text-white underline font-bold hover:text-brand-100" 
+        : "text-brand-600 dark:text-brand-400 underline font-bold hover:text-brand-700 dark:hover:text-brand-300";
+
+      if (isExternal) {
+        parts.push(
+          <a key={`link-${index}`} href={linkUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+            {linkText}
+          </a>
+        );
+      } else {
+        parts.push(
+          <Link key={`link-${index}`} href={linkUrl} onClick={() => setIsOpen(false)} className={linkClass}>
+            {linkText}
+          </Link>
+        );
+      }
+
+      lastIndex = linkRegex.lastIndex;
+    }
+
+    if (lastIndex < processedText.length) {
+      parts.push(
+        <span 
+          key="text-end" 
+          dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex) }} 
+        />
+      );
+    }
+
+    return parts.length > 0 ? parts : <span dangerouslySetInnerHTML={{ __html: processedText }} />;
+  };
+
+  const executeSendMessage = async (userQuery: string) => {
     const newUserMsg: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: inputValue,
+      content: userQuery,
     };
 
     const updatedMessages = [...messages, newUserMsg];
     setMessages(updatedMessages);
-    setInputValue("");
     setIsTyping(true);
 
     try {
@@ -88,13 +148,20 @@ export default function AIAssistant() {
         {
           id: (Date.now() + 1).toString(),
           role: "ai",
-          content: "I'm having trouble connecting to the server. Please schedule a discovery call to learn more!",
-          isLink: true,
+          content: "I'm having trouble connecting to the server. Please [book a free demo](https://cal.com/clifford-bulya/15min) to speak with our team!",
         },
       ]);
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    const query = inputValue;
+    setInputValue("");
+    executeSendMessage(query);
   };
 
   if (!mounted) return null;
@@ -111,8 +178,9 @@ export default function AIAssistant() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="mb-4 w-[calc(100vw-3rem)] sm:w-[380px] h-[500px] max-h-[calc(100vh-8rem)] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="mb-4 w-[calc(100vw-3rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-8rem)] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
+            {/* Header */}
             <div className="bg-brand-600 text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -135,21 +203,12 @@ export default function AIAssistant() {
               </button>
             </div>
 
+            {/* Chat Area */}
             <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50 dark:bg-gray-900/50">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "bg-brand-600 text-white rounded-br-none" : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-bl-none shadow-sm"}`}>
-                    {msg.content}
-                    {msg.isLink && (
-                      <div className="mt-3 flex flex-col gap-2">
-                        <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" className="block text-center bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:hover:bg-brand-900/50 text-brand-700 dark:text-brand-300 font-semibold py-2 rounded-lg border border-brand-200 dark:border-brand-800 transition-colors">
-                          Book a Demo
-                        </a>
-                        <Link href="/contact" onClick={() => setIsOpen(false)} className="block text-center bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold py-2 rounded-lg transition-colors">
-                          Contact Us
-                        </Link>
-                      </div>
-                    )}
+                    {renderMessageContent(msg.content, msg.role)}
                   </div>
                 </div>
               ))}
@@ -165,7 +224,23 @@ export default function AIAssistant() {
               <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800">
+            {/* Smart Interaction: Suggestion Chips */}
+            {!isTyping && (
+              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 flex flex-wrap gap-2 border-t border-gray-100 dark:border-gray-800">
+                {SUGGESTION_CHIPS.map((chip, i) => (
+                  <button
+                    key={i}
+                    onClick={() => executeSendMessage(chip.query)}
+                    className="text-xs bg-white hover:bg-brand-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-white border border-gray-200 dark:border-gray-700 rounded-full px-3 py-1.5 font-medium transition-all focus-visible:outline-none"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Input Form */}
+            <form onSubmit={handleFormSubmit} className="p-4 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800">
               <div className="relative flex items-center">
                 <label htmlFor="chat-input" className="sr-only">Type your message to the AI assistant</label>
                 <input
@@ -173,7 +248,7 @@ export default function AIAssistant() {
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask me about EMR integration..."
+                  placeholder="Ask a question..."
                   className="w-full bg-gray-100 dark:bg-gray-900 border-none text-gray-900 dark:text-white text-sm rounded-full pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
                 <button
@@ -190,6 +265,7 @@ export default function AIAssistant() {
         )}
       </AnimatePresence>
 
+      {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-14 h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950 relative"
