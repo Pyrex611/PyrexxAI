@@ -1,7 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const SYSTEM_PROMPT = `You are the PyrexxAI virtual assistant, an expert sales engineer for an AI voice receptionist agency. 
 Your goal is to answer questions about PyrexxAI concisely, professionally, and accurately, and ultimately guide the user to book a demo.
@@ -21,51 +18,64 @@ If asked a highly complex question, suggest they book a demo at https://cal.com/
 
 export async function POST(req: Request) {
   try {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    const model = process.env.OPENROUTER_MODEL || "arcee-ai/trinity-large-preview:free";
+
+    if (!apiKey) {
+      console.error("CRITICAL ERROR: OPENROUTER_API_KEY is missing from environment variables.");
+      return NextResponse.json(
+        { content: "System Configuration Error: The OpenRouter API key is missing on the server. Please add OPENROUTER_API_KEY to your environment." },
+        { status: 500 }
+      );
+    }
+
     const body = await req.json();
     const { messages } = body;
 
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      systemInstruction: SYSTEM_PROMPT 
+    // Filter out the hardcoded UI greeting (id: "1") and map remaining messages to OpenRouter roles
+    const conversationHistory = messages
+      .filter((msg: any) => msg.id !== "1")
+      .map((msg: any) => ({
+        role: msg.role === "ai" ? "assistant" : "user",
+        content: msg.content,
+      }));
+
+    // Inject System Instructions seamlessly at the beginning of the array
+    const payloadMessages = [
+      { role: "system", content: SYSTEM_PROMPT },
+      ...conversationHistory
+    ];
+
+    console.log(`[PyrexxAI] Routing prompt to OpenRouter model: ${model}`);
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://pyrexxai.com",
+        "X-Title": "PyrexxAI Assistant",
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: payloadMessages,
+        temperature: 0.7,
+        max_tokens: 1000,
+      }),
     });
 
-    // 1. Remove the initial hardcoded AI greeting from the history context (id: "1")
-    const rawHistory = messages.slice(0, -1).filter((msg: any) => msg.id !== "1");
-
-    // 2. Format history and ensure alternating user/model sequence
-    let formattedHistory: { role: string; parts: { text: string }[] }[] = [];
-    let lastRole = "";
-
-    for (const msg of rawHistory) {
-      const currentRole = msg.role === "ai" ? "model" : "user";
-      
-      if (currentRole === lastRole) {
-        // Gemini strictly requires alternating roles. Combine sequential messages from the same role.
-        formattedHistory[formattedHistory.length - 1].parts[0].text += `\n${msg.content}`;
-      } else {
-        formattedHistory.push({
-          role: currentRole,
-          parts: [{ text: msg.content }]
-        });
-        lastRole = currentRole;
-      }
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`OpenRouter API error status: ${response.status}`, errorText);
+      throw new Error(`OpenRouter API error (${response.status}): ${errorText}`);
     }
 
-    // 3. Ensure the absolute first message in the history array is a "user" message
-    if (formattedHistory.length > 0 && formattedHistory[0].role === "model") {
-      formattedHistory.shift();
-    }
+    const data = await response.json();
+    const reply = data.choices[0].message.content;
 
-    const chat = model.startChat({ history: formattedHistory });
-    const latestMessage = messages[messages.length - 1].content;
-
-    const result = await chat.sendMessage(latestMessage);
-    const response = await result.response;
-    const text = response.text();
-
-    return NextResponse.json({ content: text });
+    return NextResponse.json({ content: reply });
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("OpenRouter Integration Error:", error);
     return NextResponse.json(
       { content: "I'm currently experiencing high volume. Please book a demo or use our contact form to speak with our engineering team!" },
       { status: 500 }
