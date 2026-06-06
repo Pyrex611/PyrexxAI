@@ -20,10 +20,8 @@ export default function Footer() {
     <footer className="bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 pt-16 pb-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         
-        {/* Dynamic Mobile & Desktop Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 md:gap-12 mb-16">
           
-          {/* Brand - Full width on mobile, 2 cols on desktop */}
           <div className="col-span-2 lg:col-span-2 flex flex-col space-y-4">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative w-9 h-9 rounded-full bg-brand-600 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform shadow-sm">
@@ -46,7 +44,6 @@ export default function Footer() {
             </div>
           </div>
           
-          {/* Get In Touch - Full width on mobile, 1 col on desktop */}
           <div className="col-span-2 lg:col-span-1">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Get in Touch</h4>
             <ul className="space-y-4">
@@ -63,17 +60,15 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Services - Half width on mobile, 1 col on desktop */}
           <div className="col-span-1 lg:col-span-1">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Services</h4>
             <ul className="space-y-3">
               <li><Link href="/ai-receptionist" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">AI Receptionist</Link></li>
-              <li><Link href="/#services-website" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Website Building</Link></li>
-              <li><Link href="/#services-reactivation" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Database Reactivation</Link></li>
+              <li><Link href="/website-building" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Website Building</Link></li>
+              <li><Link href="/database-reactivation" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Database Reactivation</Link></li>
             </ul>
           </div>
 
-          {/* Company - Half width on mobile, 1 col on desktop */}
           <div className="col-span-1 lg:col-span-1">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Company</h4>
             <ul className="space-y-3">

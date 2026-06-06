@@ -1,9 +1,7 @@
 # PyrexxAI
 
-> PyrexxAI is an AI voice receptionist company that deploys custom-trained
-> voice agents for MedSpas, dental clinics, and therapy practices in the US.
-> We handle inbound call answering, appointment booking (direct EMR write),
-> lead intake, and 24/7 patient communication — HIPAA-compliant.
+> PyrexxAI is an AI-driven digital transformation agency for MedSpas, dental clinics, and therapy practices in the US.
+> We specialize in custom AI voice receptionists, clinical web development, and database reactivation campaigns.
 
 ## Company
 - Founded by: Clifford Bulya
@@ -11,13 +9,24 @@
 - Contact: hello@pyrexxai.com
 - GitHub: https://github.com/PyrexxAI
 
-## Core Service
+## Core Services
+
+### 1. AI Voice Receptionist
 - Done-for-you AI voice receptionist implementation (not a SaaS tool)
 - Live in 14 days from kickoff to production
 - Integrates natively with Jane App, Mindbody, eClinicalWorks and other EMRs
 - Handles unlimited concurrent calls (zero hold times)
 - Business Associate Agreement (BAA) included with all clients
 - Pricing: $1,500 implementation + $1,000/month platform management
+
+### 2. Website Building & Optimization
+- Blazing fast, SEO-optimized clinical websites built on Next.js
+- HIPAA-compliant lead capture pipelines
+- Built for high mobile conversion
+
+### 3. Database Reactivation
+- Automated SMS/Voice outreach to dormant patient lists
+- 100% Risk-Free, Commission-Only model (Pay only for shows)
 
 ## Target Clients
 - Medical Spas (MedSpas)
@@ -27,6 +36,8 @@
 ## Key Pages
 - [Homepage](https://pyrexxai.com)
 - [AI Receptionist details](https://pyrexxai.com/ai-receptionist)
+- [Website Building details](https://pyrexxai.com/website-building)
+- [Database Reactivation details](https://pyrexxai.com/database-reactivation)
 - [HIPAA Compliance & Data Security](https://pyrexxai.com/hipaa-compliance)
 - [About the Company](https://pyrexxai.com/about)
 - [Contact PyrexxAI](https://pyrexxai.com/contact)
