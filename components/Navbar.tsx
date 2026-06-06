@@ -78,6 +78,7 @@ export default function Navbar() {
         
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600 dark:text-gray-300">
           
+          {/* Services Dropdown */}
           <div 
             className="relative" 
             ref={servicesRef}
@@ -113,8 +114,19 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
 
+          {/* Main Navbar Links */}
           <Link href="/#how-it-works" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">How it Works</Link>
+          
+          <Link 
+            href="/contact" 
+            className={`hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1 ${
+              pathname.startsWith("/contact") ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
+            }`}
+          >
+            Contact
+          </Link>
 
+          {/* Company Dropdown */}
           <div 
             className="relative" 
             ref={companyRef}
@@ -126,7 +138,7 @@ export default function Navbar() {
               onKeyDown={(e) => handleKeyDown(e, "company")}
               aria-expanded={desktopCompanyOpen}
               className={`flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1 ${
-                pathname.startsWith("/about") || pathname.startsWith("/contact") ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
+                pathname.startsWith("/about") || pathname.startsWith("/careers") ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
               }`}
             >
               Company <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${desktopCompanyOpen ? "rotate-180" : ""}`} />
@@ -142,7 +154,6 @@ export default function Navbar() {
                 >
                   <div className="py-2 flex flex-col">
                     <Link href="/about" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">About Us</Link>
-                    <Link href="/contact" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Contact Us</Link>
                     <Link href="/#faq" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Help & Support</Link>
                     <Link href="/careers" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Careers</Link>
                   </div>
@@ -184,6 +195,7 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className="absolute top-20 left-0 w-full h-[calc(100vh-80px)] bg-white dark:bg-gray-950 shadow-xl p-6 flex flex-col space-y-4 md:hidden z-40 overflow-y-auto"
           >
+            {/* Mobile Services Accordion */}
             <div className="py-2 border-b border-gray-100 dark:border-gray-800">
               <button 
                 onClick={() => setMobileServicesOpen(!mobileServicesOpen)} 
@@ -208,7 +220,9 @@ export default function Navbar() {
             </div>
 
             <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">How it Works</Link>
+            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">Contact</Link>
             
+            {/* Mobile Company Accordion */}
             <div className="py-2 border-b border-gray-100 dark:border-gray-800">
               <button 
                 onClick={() => setMobileCompanyOpen(!mobileCompanyOpen)} 
@@ -225,7 +239,6 @@ export default function Navbar() {
                     className="flex flex-col space-y-3 mt-4 pl-4 overflow-hidden"
                   >
                     <Link href="/about" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">About Us</Link>
-                    <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Contact Us</Link>
                     <Link href="/#faq" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Help & Support</Link>
                     <Link href="/careers" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Careers</Link>
                   </motion.div>
