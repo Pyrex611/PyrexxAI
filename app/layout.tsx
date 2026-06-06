@@ -31,18 +31,12 @@ export const metadata: Metadata = {
     "PyrexxAI deploys custom-trained AI voice receptionists for MedSpas, dental clinics, and therapy practices. Capture every call 24/7, book appointments automatically, and eliminate missed revenue — HIPAA-compliant.",
   icons: {
     icon: [
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" }
     ],
+    shortcut: "/favicon.ico",
     apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    other: [
-      {
-        rel: "mask-icon",
-        url: "/safari-pinned-tab.svg",
-        color: "#2563eb",
-      },
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }
     ],
   },
   manifest: "/site.webmanifest",
@@ -115,11 +109,17 @@ export default function RootLayout({
     url: "https://pyrexxai.com",
     logo: "https://pyrexxai.com/logo.png",
     sameAs: [
-      "https://github.com/PyrexxAI"
+      "https://github.com/PyrexxAI",
+      "https://linkedin.com/company/pyrexxai",
+      "https://twitter.com/pyrexxai",
+      "https://instagram.com/pyrexxai",
+      "https://facebook.com/pyrexxai",
+      "https://youtube.com/@pyrexxai"
     ],
     contactPoint: {
       "@type": "ContactPoint",
       email: "hello@pyrexxai.com",
+      telephone: "+13023376310",
       contactType: "sales",
       availableLanguage: "English",
       areaServed: "US"
