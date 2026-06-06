@@ -115,7 +115,7 @@ export default function DashboardDemoPage() {
             <div className="space-y-6">
               <div className="flex items-center space-x-3 border-b border-gray-800 pb-4">
                 <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full animate-ping"></div>
-                <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Retell Voice Agent Live</span>
+                <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Voice Agent Live</span>
               </div>
               
               <ul className="space-y-2">

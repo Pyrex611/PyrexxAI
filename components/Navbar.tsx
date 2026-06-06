@@ -57,6 +57,9 @@ export default function Navbar() {
     }
   };
 
+  const isServiceActive = pathname.startsWith("/ai-receptionist") || pathname.startsWith("/website-building") || pathname.startsWith("/database-reactivation");
+  const isCompanyActive = pathname.startsWith("/about") || pathname.startsWith("/careers");
+
   return (
     <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-lg z-50 border-b border-gray-100/60 dark:border-gray-800/60 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative z-50">
@@ -78,7 +81,6 @@ export default function Navbar() {
         
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600 dark:text-gray-300">
           
-          {/* Services Dropdown */}
           <div 
             className="relative" 
             ref={servicesRef}
@@ -90,7 +92,7 @@ export default function Navbar() {
               onKeyDown={(e) => handleKeyDown(e, "services")}
               aria-expanded={desktopServicesOpen}
               className={`flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1 ${
-                pathname.startsWith("/ai-receptionist") ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
+                isServiceActive ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
               }`}
             >
               Services <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${desktopServicesOpen ? "rotate-180" : ""}`} />
@@ -106,15 +108,14 @@ export default function Navbar() {
                 >
                   <div className="py-2 flex flex-col">
                     <Link href="/ai-receptionist" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">AI Receptionist</Link>
-                    <Link href="/#services-website" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Website Building</Link>
-                    <Link href="/#services-reactivation" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Database Reactivation</Link>
+                    <Link href="/website-building" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Website Building</Link>
+                    <Link href="/database-reactivation" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Database Reactivation</Link>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Main Navbar Links */}
           <Link href="/#how-it-works" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">How it Works</Link>
           
           <Link 
@@ -126,7 +127,6 @@ export default function Navbar() {
             Contact
           </Link>
 
-          {/* Company Dropdown */}
           <div 
             className="relative" 
             ref={companyRef}
@@ -138,7 +138,7 @@ export default function Navbar() {
               onKeyDown={(e) => handleKeyDown(e, "company")}
               aria-expanded={desktopCompanyOpen}
               className={`flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1 ${
-                pathname.startsWith("/about") || pathname.startsWith("/careers") ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
+                isCompanyActive ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
               }`}
             >
               Company <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${desktopCompanyOpen ? "rotate-180" : ""}`} />
@@ -195,7 +195,6 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className="absolute top-20 left-0 w-full h-[calc(100vh-80px)] bg-white dark:bg-gray-950 shadow-xl p-6 flex flex-col space-y-4 md:hidden z-40 overflow-y-auto"
           >
-            {/* Mobile Services Accordion */}
             <div className="py-2 border-b border-gray-100 dark:border-gray-800">
               <button 
                 onClick={() => setMobileServicesOpen(!mobileServicesOpen)} 
@@ -212,8 +211,8 @@ export default function Navbar() {
                     className="flex flex-col space-y-3 mt-4 pl-4 overflow-hidden"
                   >
                     <Link href="/ai-receptionist" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">AI Receptionist</Link>
-                    <Link href="/#services-website" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Website Building</Link>
-                    <Link href="/#services-reactivation" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Database Reactivation</Link>
+                    <Link href="/website-building" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Website Building</Link>
+                    <Link href="/database-reactivation" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Database Reactivation</Link>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -222,7 +221,6 @@ export default function Navbar() {
             <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">How it Works</Link>
             <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">Contact</Link>
             
-            {/* Mobile Company Accordion */}
             <div className="py-2 border-b border-gray-100 dark:border-gray-800">
               <button 
                 onClick={() => setMobileCompanyOpen(!mobileCompanyOpen)} 
