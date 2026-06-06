@@ -36,11 +36,11 @@ export default function Footer() {
             <div className="flex flex-wrap gap-4 pt-2">
               <a href="https://github.com/PyrexxAI" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Github className="w-5 h-5" /></a>
               <a href="https://linkedin.com/company/pyrexxai" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Linkedin className="w-5 h-5" /></a>
-              <a href="https://twitter.com/pyrexxai" target="_blank" rel="noopener noreferrer" aria-label="X (formerly Twitter)" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><XIcon className="w-5 h-5" /></a>
-              <a href="https://facebook.com/pyrexxai" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Facebook className="w-5 h-5" /></a>
+              <a href="https://x.com/pyrexxai" target="_blank" rel="noopener noreferrer" aria-label="X (formerly Twitter)" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><XIcon className="w-5 h-5" /></a>
+              <a href="https://facebook.com/share/1LXRSNNjPR/?mibextid=wwXlfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Facebook className="w-5 h-5" /></a>
               <a href="https://instagram.com/pyrexxai" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Instagram className="w-5 h-5" /></a>
               <a href="https://youtube.com/@pyrexxai" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><Youtube className="w-5 h-5" /></a>
-              <a href="https://tiktok.com/@pyrexxai" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><TikTokIcon className="w-5 h-5" /></a>
+              <a href="https://tiktok.com/@pyrexx_ai" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><TikTokIcon className="w-5 h-5" /></a>
             </div>
           </div>
           
