@@ -5,6 +5,7 @@ import CookieBanner from "@/components/CookieBanner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -111,10 +112,11 @@ export default function RootLayout({
     sameAs: [
       "https://github.com/PyrexxAI",
       "https://linkedin.com/company/pyrexxai",
-      "https://twitter.com/pyrexxai",
-      "https://instagram.com/pyrexxai",
-      "https://facebook.com/pyrexxai",
-      "https://youtube.com/@pyrexxai"
+      "https://x.com/pyrexxai",
+      "https://instagram.com/pyrexx_only",
+      "https://facebook.com/share/1LXRSNNjPR/?mibextid=wwXlfr",
+      "https://youtube.com/@pyrexxai",
+			"https://www.tiktok.com/@pyrexx_ai"
     ],
     contactPoint: {
       "@type": "ContactPoint",
@@ -292,6 +294,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
+        <title>Next.js</title>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
@@ -303,6 +306,7 @@ export default function RootLayout({
           <Toaster position="bottom-right" richColors />
           <AIAssistant />
           {children}
+          <Analytics />
           <CookieBanner />
         </ThemeProvider>
       </body>
