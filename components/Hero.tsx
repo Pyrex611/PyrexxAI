@@ -6,10 +6,9 @@ import Link from "next/link";
 import { 
   Shield, Server, Activity, Users, ArrowRight, 
   LayoutDashboard, BarChart3, User, PhoneCall, 
-  CalendarCheck, Clock, CheckCircle2, ChevronRight, Bot 
+  CalendarCheck, Clock, CheckCircle2, Bot 
 } from "lucide-react";
 import { CAL_LINK, getFadeUpVariants, getStaggerContainer } from "@/lib/utils";
-import StatsBar from "@/components/StatsBar";
 
 type TabState = "dashboard" | "analytics" | "profile";
 
@@ -36,7 +35,6 @@ export default function Hero() {
 
   return (
     <section className="relative pt-32 pb-16 overflow-hidden dark:bg-gray-950 transition-colors duration-300">
-      {/* Background Gradients */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl -z-10 pointer-events-none">
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-brand-100/40 dark:bg-brand-900/20 blur-[100px] rounded-full" />
         <div className="absolute top-40 left-1/4 w-[600px] h-[300px] bg-accent-50/40 dark:bg-accent-900/20 blur-[100px] rounded-full" />
@@ -53,20 +51,19 @@ export default function Hero() {
           </motion.h1>
           
           <motion.p variants={fadeUp} className="text-lg lg:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            38% of patient calls go unanswered. PyrexxAI deploys custom voice AI that answers every call 24/7, books directly into your schedule, and qualifies every lead.
+            Every missed call is lost revenue. PyrexxAI deploys custom voice AI that answers every call 24/7, books directly into your schedule, and qualifies every lead — HIPAA-compliant and live in days.
           </motion.p>
           
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 pt-2">
-            <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full text-base font-semibold transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950">
+            <Link href={CAL_LINK} className="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full text-base font-semibold transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950">
               Book a Free Demo &rarr;
-            </a>
+            </Link>
             <Link href="/#how-it-works" className="w-full sm:w-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200 px-8 py-4 rounded-full text-base font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950">
               See How It Works
             </Link>
           </motion.div>
         </motion.div>
 
-        {/* Horizontally Scrollable Mobile Pill Menu  for better UI/UX*/}
         <motion.div 
           initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -89,14 +86,12 @@ export default function Hero() {
           </div>
         </motion.div>
 
-        {/* 3-Column Interactive Widget Section */}
         <motion.div 
           initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.8 }}
           className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12 lg:gap-8 px-6 mt-16"
         >
-          {/* Left Column: Navigation Tabs */}
           <div className="flex lg:flex-col gap-3 w-full lg:w-56 overflow-x-auto scrollbar-hide pb-2 lg:pb-0 shrink-0 lg:mt-10">
             {[
               { id: "dashboard", icon: LayoutDashboard, label: "Live Dashboard" },
@@ -122,21 +117,17 @@ export default function Hero() {
             })}
           </div>
 
-          {/* Center Column: The Mobile Widget */}
           <motion.div 
             animate={prefersReducedMotion ? {} : { y: [0, -8, 0] }} 
             transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-            className="shrink-0 relative w-[300px] h-[600px] bg-gray-900 dark:bg-black rounded-[3rem] p-2.5 shadow-2xl border border-gray-800"
+            className="shrink-0 relative w-full sm:w-[300px] h-[600px] bg-gray-900 dark:bg-black rounded-[3rem] p-2.5 shadow-2xl border border-gray-800"
           >
-            {/* The Inner Screen */}
             <div className="w-full h-full bg-gray-50 dark:bg-[#0A0B0D] rounded-[2.5rem] overflow-hidden relative flex flex-col border border-gray-800/50">
               
-              {/* iPhone Notch */}
               <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
                 <div className="w-32 h-5 bg-gray-900 dark:bg-black rounded-b-xl"></div>
               </div>
               
-              {/* Top Status Bar */}
               <div className="h-10 w-full px-6 flex justify-between items-end pb-1 text-[10px] font-medium text-gray-500 z-20">
                 <span>9:41</span>
                 <div className="flex gap-1 items-center">
@@ -145,11 +136,9 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* Screen Content Wrapper */}
               <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pb-24 relative">
                 <AnimatePresence mode="wait">
                   
-                  {/* Dashboard View */}
                   {activeTab === "dashboard" && (
                     <motion.div key="dashboard" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} transition={{duration: 0.2}} className="space-y-4 pt-2">
                       <div className="flex justify-between items-center mb-6">
@@ -162,7 +151,6 @@ export default function Hero() {
                         </div>
                       </div>
 
-                      {/* Active Call Card */}
                       <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-brand-100 dark:border-brand-800">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
@@ -206,7 +194,6 @@ export default function Hero() {
                     </motion.div>
                   )}
 
-                  {/* Analytics View */}
                   {activeTab === "analytics" && (
                     <motion.div key="analytics" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} transition={{duration: 0.2}} className="space-y-4 pt-2">
                       <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Performance</h2>
@@ -250,7 +237,6 @@ export default function Hero() {
                     </motion.div>
                   )}
 
-                  {/* Profile View */}
                   {activeTab === "profile" && (
                     <motion.div key="profile" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} transition={{duration: 0.2}} className="space-y-4 pt-2">
                       <div className="flex flex-col items-center justify-center py-6">
@@ -300,7 +286,6 @@ export default function Hero() {
             </div>
           </motion.div>
 
-          {/* Right Column: Context & CTA */}
           <div className="flex-1 text-center lg:text-left w-full max-w-sm lg:mt-10">
             <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
               {tabContent[activeTab].title}
@@ -309,14 +294,12 @@ export default function Hero() {
               {tabContent[activeTab].desc}
             </p>
             <div className="space-y-4">
-              <a 
+              <Link 
                 href={CAL_LINK} 
-                target="_blank" 
-                rel="noopener noreferrer" 
                 className="w-full sm:w-auto inline-flex items-center justify-center bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl text-sm font-bold transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
                 Request Setup <ArrowRight className="w-4 h-4 ml-2" />
-              </a>
+              </Link>
               <p className="text-xs text-gray-500 dark:text-gray-500 font-medium">
                 Or create a free account to explore the dashboard yourself.
               </p>
@@ -325,8 +308,6 @@ export default function Hero() {
 
         </motion.div>
       </div>
-
-      <StatsBar />
     </section>
   );
 }
