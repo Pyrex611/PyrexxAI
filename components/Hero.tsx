@@ -66,7 +66,7 @@ export default function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* Horizontally Scrollable Mobile Pill Menu */}
+        {/* Horizontally Scrollable Mobile Pill Menu  for better UI/UX*/}
         <motion.div 
           initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
