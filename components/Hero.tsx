@@ -6,7 +6,7 @@ import Link from "next/link";
 import { 
   Shield, Server, Activity, Users, ArrowRight, 
   LayoutDashboard, BarChart3, User, PhoneCall, 
-  CalendarCheck, Clock, CheckCircle2, ChevronRight
+  CalendarCheck, Clock, CheckCircle2, ChevronRight, Bot 
 } from "lucide-react";
 import { CAL_LINK, getFadeUpVariants, getStaggerContainer } from "@/lib/utils";
 import StatsBar from "@/components/StatsBar";
