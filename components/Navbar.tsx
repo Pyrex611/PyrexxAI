@@ -166,14 +166,12 @@ export default function Navbar() {
         <div className="flex items-center space-x-4">
           <ThemeToggle />
           <div className="hidden md:block">
-            <a
+            <Link
               href={CAL_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
             >
               Book a Free Demo &rarr;
-            </a>
+            </Link>
           </div>
           <button 
             className="md:hidden p-2 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
@@ -245,9 +243,9 @@ export default function Navbar() {
             </div>
 
             <div className="pt-6">
-              <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" onClick={() => setIsOpen(false)} className="block w-full bg-brand-600 text-white px-5 py-4 rounded-xl text-center font-bold shadow-cta text-lg">
+              <Link href={CAL_LINK} onClick={() => setIsOpen(false)} className="block w-full bg-brand-600 text-white px-5 py-4 rounded-xl text-center font-bold shadow-cta text-lg">
                 Book a Free Demo &rarr;
-              </a>
+              </Link>
             </div>
           </motion.div>
         )}
