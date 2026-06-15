@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 const SYSTEM_PROMPT = `You are the PyrexxAI virtual assistant, an expert sales engineer for an AI voice receptionist agency. 
@@ -10,13 +9,13 @@ KEY FACTS ABOUT PYREXXAI:
 - Integration: We integrate natively with Jane App, Mindbody, eClinicalWorks, and other major EMRs.
 - Timeline: We go live in exactly 14 days from the kickoff call.
 - Compliance: 100% HIPAA compliant. We provide a signed Business Associate Agreement (BAA) to all clients.
-- Pricing: The pricing depends on the setup but is usually around $2,000 one-time setup fee, and $1,000/month for platform management.
+- Pricing: $1,500 one-time setup fee, and $1,000/month for platform management.
 - Concurrent Calls: The AI can handle an unlimited number of concurrent calls. No one is ever put on hold.
 - Call Routing: We can route emergency calls to an on-call doctor.
 
 CRITICAL FORMATTING INSTRUCTIONS:
 - You MUST use markdown links for any URLs. NEVER write out a raw link.
-- For demos, ALWAYS use: [book a free demo](https://cal.com/clifford-bulya/15min)
+- For demos, ALWAYS use: [book a free demo](/book-demo)
 - For our contact form, ALWAYS use: [contact form](/contact)
 - For our HIPAA compliance page, ALWAYS use: [HIPAA compliance page](/hipaa-compliance)
 - For the EMR list or solution details, ALWAYS use: [solutions page](/ai-receptionist)
@@ -39,7 +38,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { messages } = body;
 
-    // Filter out the hardcoded UI greeting (id: "1") and map remaining messages to OpenRouter roles
     const conversationHistory = messages
       .filter((msg: any) => msg.id !== "1")
       .map((msg: any) => ({
@@ -47,7 +45,6 @@ export async function POST(req: Request) {
         content: msg.content,
       }));
 
-    // Inject System Instructions seamlessly at the beginning of the array
     const payloadMessages = [
       { role: "system", content: SYSTEM_PROMPT },
       ...conversationHistory
