@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { CAL_LINK } from "@/lib/utils";
 
 export default function CTA() {
@@ -12,14 +13,12 @@ export default function CTA() {
         <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
           Book a free 15-minute discovery call. We'll show you exactly how PyrexxAI sounds, how it books, and how much revenue you're currently losing.
         </p>
-        <a 
+        <Link 
           href={CAL_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
           className="inline-flex bg-brand-600 hover:bg-brand-700 text-white px-10 py-5 rounded-full text-lg font-bold transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/50 animate-pulse-glow"
         >
           Book My Free Demo &rarr;
-        </a>
+        </Link>
         <p className="mt-6 text-sm text-gray-500 dark:text-gray-500 font-medium">
           No credit card. No long-term contracts. Cancel anytime.
         </p>
