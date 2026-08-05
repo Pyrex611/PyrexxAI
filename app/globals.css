@@ -5,7 +5,7 @@
 /* Custom Base Styles */
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 80px;
+  scroll-padding-top: 100px;
 }
 
 body {
@@ -19,6 +19,7 @@ body {
   letter-spacing: -0.03em;
 }
 
+/* Waveform animation for hero mockup */
 @keyframes wave {
   0%, 100% { transform: scaleY(0.3); }
   50% { transform: scaleY(1); }
@@ -48,12 +49,12 @@ body {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wave-bar, .animate-float-slow, .animate-float-delayed { 
+  .wave-bar { 
     animation: none; 
     transform: none; 
   }

@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     siteName: "PyrexxAI",
     title: "PyrexxAI — AI Voice Receptionists That Never Miss a Patient Call",
     description:
-      "Stop losing $67K+ per year to missed calls. PyrexxAI deploys fully custom AI receptionists for MedSpas, dental, and therapy clinics — HIPAA-compliant, live in 14 days.",
+      "Stop losing Revenue to missed calls. PyrexxAI deploys fully custom AI receptionists for MedSpas, dental, and therapy clinics — HIPAA-compliant, live in 14 days.",
     images: [
       {
         url: "/og-image.png",
