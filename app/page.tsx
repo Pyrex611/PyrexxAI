@@ -16,10 +16,9 @@ const FAQ = dynamic(() => import('@/components/FAQ'), { ssr: true });
 
 export default function PyrexxAILandingPage() {
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 selection:bg-brand-100 dark:selection:bg-brand-900/50 selection:text-brand-900 dark:selection:text-brand-100 transition-colors duration-300">
+    <main className="min-h-screen bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-50 selection:bg-brand-100 dark:selection:bg-brand-900/50 selection:text-brand-900 dark:selection:text-brand-100 transition-colors duration-300">
       <Navbar />
       <Hero />
-      {/* StatsBar is now cleanly invoked right after the hero, framing the dashboard preview */}
       <StatsBar />
       <ROICalculator />
       <Offerings />

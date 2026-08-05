@@ -8,8 +8,7 @@ import {
   LayoutDashboard, BarChart3, User, PhoneCall, 
   CalendarCheck, Clock, CheckCircle2, ChevronRight, Bot, Zap, ShieldCheck
 } from "lucide-react";
-import { getFadeUpVariants, getStaggerContainer } from "@/lib/utils";
-import StatsBar from "@/components/StatsBar";
+import { CAL_LINK, getFadeUpVariants, getStaggerContainer } from "@/lib/utils";
 
 type TabState = "dashboard" | "analytics" | "profile";
 
@@ -30,7 +29,7 @@ export default function Hero() {
     },
     profile: {
       title: "Clinical System Controls",
-      desc: "Configure business hours, manage EMR API credentials, and verify HIPAA Business Associate Agreements directly from your mobile device."
+      desc: "Configure business hours, manage EMR API credentials, and review your HIPAA Business Associate Agreements directly from your mobile device."
     }
   };
 
@@ -44,21 +43,21 @@ export default function Hero() {
 
       <div className="max-w-7xl mx-auto px-6">
         
-        {/* Main Blooio-Style Split Grid */}
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center mb-12">
+        {/* Main Blooio-Style Split 12-Column Grid */}
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-6 items-center mb-12">
           
-          {/* Left Column: Consumer Psychology Value Prop */}
+          {/* Left Column (5 Cols): Consumer Psychology Value Prop */}
           <motion.div 
             initial="hidden" 
             animate="visible" 
             variants={stagger} 
-            className="lg:col-span-6 text-center lg:text-left space-y-6"
+            className="lg:col-span-5 text-center lg:text-left space-y-6"
           >
             <motion.div variants={fadeUp} className="inline-flex items-center space-x-2 bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800/60 px-4 py-1.5 rounded-full text-brand-700 dark:text-brand-300 text-xs font-semibold uppercase tracking-wider">
               <span>✦ Purpose-Built for Healthcare Practices</span>
             </motion.div>
 
-            <motion.h1 variants={fadeUp} className="text-[clamp(2.5rem,5.5vw,4.25rem)] font-extrabold tracking-tight text-gray-900 dark:text-white leading-[1.1]">
+            <motion.h1 variants={fadeUp} className="text-[clamp(2.25rem,5vw,3.75rem)] font-extrabold tracking-tight text-gray-900 dark:text-white leading-[1.1]">
               Turn Every Missed Patient Call Into a <br className="hidden sm:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-accent-500 to-brand-400">
                 Booked Appointment.
@@ -71,7 +70,7 @@ export default function Hero() {
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
               <Link 
-                href="/book-demo" 
+                href={CAL_LINK} 
                 className="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full text-base font-bold transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 text-center"
               >
                 Book a Free Demo &rarr;
@@ -94,11 +93,11 @@ export default function Hero() {
             </motion.div>
           </motion.div>
 
-          {/* Center/Right Column: Phone Mockup & Floating Psychology Chips */}
-          <div className="lg:col-span-6 relative flex justify-center items-center my-8 lg:my-0">
+          {/* Center Column (4 Cols): Phone Mockup & Floating Psychology Chips */}
+          <div className="lg:col-span-4 relative flex justify-center items-center my-8 lg:my-0">
             
             {/* Floating Chip 1 (Top Left) */}
-            <div className="absolute -top-4 -left-2 sm:left-4 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-gray-200/80 dark:border-slate-800/80 p-3.5 rounded-2xl shadow-xl animate-float-slow hidden sm:flex items-center gap-3">
+            <div className="absolute -top-4 -left-2 sm:left-2 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-gray-200/80 dark:border-slate-800/80 p-3.5 rounded-2xl shadow-xl animate-float-slow hidden sm:flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
               <div>
                 <p className="text-xs font-bold text-gray-900 dark:text-white">24/7 Availability</p>
@@ -129,7 +128,7 @@ export default function Hero() {
             </div>
 
             {/* Floating Chip 4 (Bottom Right) */}
-            <div className="absolute -bottom-4 -right-2 sm:right-4 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-gray-200/80 dark:border-slate-800/80 p-3.5 rounded-2xl shadow-xl animate-float-slow hidden sm:flex items-center gap-3">
+            <div className="absolute -bottom-4 -right-2 sm:right-2 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-gray-200/80 dark:border-slate-800/80 p-3.5 rounded-2xl shadow-xl animate-float-slow hidden sm:flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
                 <ShieldCheck className="w-4 h-4" />
               </div>
@@ -140,7 +139,7 @@ export default function Hero() {
             </div>
 
             {/* Mobile Phone Device Frame */}
-            <div className="relative w-[280px] sm:w-[310px] h-[580px] bg-slate-900 dark:bg-black rounded-[3rem] p-2.5 shadow-2xl border-4 border-slate-800/80 dark:border-slate-800">
+            <div className="relative w-[280px] sm:w-[300px] h-[580px] bg-slate-900 dark:bg-black rounded-[3rem] p-2.5 shadow-2xl border-4 border-slate-800/80 dark:border-slate-800">
               <div className="w-full h-full bg-slate-50 dark:bg-[#0A0B0D] rounded-[2.3rem] overflow-hidden relative flex flex-col border border-slate-800/50">
                 
                 {/* iPhone Notch */}
@@ -288,7 +287,7 @@ export default function Hero() {
                   </AnimatePresence>
                 </div>
 
-                {/* Mobile Bottom Navigation */}
+                {/* App Bottom Navigation */}
                 <div className="absolute bottom-0 w-full h-20 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 flex justify-around items-center px-4 pb-4 pt-2 z-30">
                   <button onClick={() => setActiveTab("dashboard")} className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>
                     <LayoutDashboard className="w-5 h-5" />
@@ -307,6 +306,27 @@ export default function Hero() {
               </div>
             </div>
 
+          </div>
+
+          {/* Right Column (3 Cols): Context & Request Setup Action */}
+          <div className="lg:col-span-3 text-center lg:text-left w-full space-y-4">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-gray-200/80 dark:border-slate-800/80 p-6 rounded-3xl shadow-sm">
+              <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
+                {tabContent[activeTab].title}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed text-sm">
+                {tabContent[activeTab].desc}
+              </p>
+              <Link 
+                href={CAL_LINK} 
+                className="w-full inline-flex items-center justify-center bg-brand-600 hover:bg-brand-700 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-cta hover:shadow-cta-hover"
+              >
+                Request Setup <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-500 font-medium text-center">
+              Or <Link href="/dashboard" className="text-brand-600 dark:text-brand-400 underline font-semibold">explore full demo dashboard</Link>
+            </p>
           </div>
 
         </div>
