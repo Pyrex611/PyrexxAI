@@ -17,7 +17,7 @@ const inter = Inter({
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#030712" }, 
+    { media: "(prefers-color-scheme: dark)", color: "#0B0F17" }, 
   ],
   width: "device-width",
   initialScale: 1,
@@ -113,11 +113,10 @@ export default function RootLayout({
     sameAs: [
       "https://github.com/PyrexxAI",
       "https://linkedin.com/company/pyrexxai",
-      "https://x.com/pyrexxai",
-      "https://instagram.com/pyrexx_only",
-      "https://facebook.com/share/1LXRSNNjPR/?mibextid=wwXlfr",
-      "https://youtube.com/@pyrexxai",
-			"https://www.tiktok.com/@pyrexx_ai"
+      "https://twitter.com/pyrexxai",
+      "https://instagram.com/pyrexxai",
+      "https://facebook.com/pyrexxai",
+      "https://youtube.com/@pyrexxai"
     ],
     contactPoint: {
       "@type": "ContactPoint",
@@ -295,14 +294,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
-        <title>Custom AI Receptionists for Clinics</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cal.com" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       </head>
-      <body className={`${inter.variable} font-sans antialiased text-gray-900 bg-white dark:bg-gray-950 dark:text-gray-50 transition-colors duration-300`}>
+      <body className={`${inter.variable} font-sans antialiased text-gray-900 bg-white dark:bg-[#0B0F17] dark:text-gray-50 transition-colors duration-300`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Toaster position="bottom-right" richColors />
           <AIAssistant />
