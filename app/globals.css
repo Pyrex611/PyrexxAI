@@ -53,9 +53,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wave-bar { 
+  .wave-bar, .animate-float-slow, .animate-float-delayed { 
     animation: none; 
-    transform: scaleY(0.6); 
+    transform: none; 
   }
   .animate-pulse-glow {
     animation: none;

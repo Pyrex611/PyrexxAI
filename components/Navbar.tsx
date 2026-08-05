@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, Menu, X as CloseIcon, ChevronDown } from "lucide-react";
+import { Bot, Menu, X as CloseIcon, ChevronDown, Calendar } from "lucide-react";
 import { CAL_LINK } from "@/lib/utils";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -61,9 +61,11 @@ export default function Navbar() {
   const isCompanyActive = pathname.startsWith("/about") || pathname.startsWith("/careers");
 
   return (
-    <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-lg z-50 border-b border-gray-100/60 dark:border-gray-800/60 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative z-50">
-        <Link href="/" className="flex items-center space-x-2 group" aria-label="PyrexxAI Home" onClick={() => setIsOpen(false)}>
+    <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl z-50 transition-all duration-300">
+      <nav className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20 rounded-full px-4 sm:px-6 h-16 flex items-center justify-between">
+        
+        {/* Left: Brand Logo & Name */}
+        <Link href="/" className="flex items-center space-x-2.5 shrink-0 group" aria-label="PyrexxAI Home" onClick={() => setIsOpen(false)}>
           <div className="relative w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
             <Image 
               src="/logo.png" 
@@ -76,11 +78,13 @@ export default function Navbar() {
             />
             <Bot className="text-white w-5 h-5 absolute z-0" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">PyrexxAI</span>
+          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">PyrexxAI</span>
         </Link>
         
-        <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600 dark:text-gray-300">
+        {/* Center: Desktop Navigation Links */}
+        <div className="hidden lg:flex items-center space-x-6 text-sm font-medium text-gray-600 dark:text-gray-300">
           
+          {/* Services Dropdown */}
           <div 
             className="relative" 
             ref={servicesRef}
@@ -92,7 +96,7 @@ export default function Navbar() {
               onKeyDown={(e) => handleKeyDown(e, "services")}
               aria-expanded={desktopServicesOpen}
               className={`flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1 ${
-                isServiceActive ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
+                isServiceActive ? "text-brand-600 dark:text-brand-400 font-semibold" : ""
               }`}
             >
               Services <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${desktopServicesOpen ? "rotate-180" : ""}`} />
@@ -104,12 +108,12 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl overflow-hidden"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
                 >
-                  <div className="py-2 flex flex-col">
-                    <Link href="/ai-receptionist" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">AI Receptionist</Link>
-                    <Link href="/website-building" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Website Building</Link>
-                    <Link href="/database-reactivation" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Database Reactivation</Link>
+                  <div className="flex flex-col">
+                    <Link href="/ai-receptionist" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">AI Receptionist</Link>
+                    <Link href="/website-building" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">Website Building</Link>
+                    <Link href="/database-reactivation" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">Database Reactivation</Link>
                   </div>
                 </motion.div>
               )}
@@ -117,16 +121,8 @@ export default function Navbar() {
           </div>
 
           <Link href="/#how-it-works" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1">How it Works</Link>
-          
-          <Link 
-            href="/contact" 
-            className={`hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1 ${
-              pathname.startsWith("/contact") ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
-            }`}
-          >
-            Contact
-          </Link>
 
+          {/* Company Dropdown */}
           <div 
             className="relative" 
             ref={companyRef}
@@ -138,7 +134,7 @@ export default function Navbar() {
               onKeyDown={(e) => handleKeyDown(e, "company")}
               aria-expanded={desktopCompanyOpen}
               className={`flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1 ${
-                isCompanyActive ? "text-brand-600 dark:text-brand-400 border-b-2 border-brand-600" : ""
+                isCompanyActive ? "text-brand-600 dark:text-brand-400 font-semibold" : ""
               }`}
             >
               Company <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${desktopCompanyOpen ? "rotate-180" : ""}`} />
@@ -150,12 +146,13 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl overflow-hidden"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
                 >
-                  <div className="py-2 flex flex-col">
-                    <Link href="/about" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">About Us</Link>
-                    <Link href="/#faq" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Help & Support</Link>
-                    <Link href="/careers" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-600 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:bg-gray-50">Careers</Link>
+                  <div className="flex flex-col">
+                    <Link href="/about" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">About Us</Link>
+                    <Link href="/contact" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">Contact Us</Link>
+                    <Link href="/#faq" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">Help & Support</Link>
+                    <Link href="/careers" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">Careers</Link>
                   </div>
                 </motion.div>
               )}
@@ -163,18 +160,37 @@ export default function Navbar() {
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
+        {/* Right: Controls & Portal Actions */}
+        <div className="hidden md:flex items-center space-x-3">
           <ThemeToggle />
-          <div className="hidden md:block">
-            <Link
-              href={CAL_LINK}
-              className="inline-flex bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
-            >
-              Book a Free Demo &rarr;
-            </Link>
-          </div>
+          
+          <div className="h-4 w-[1px] bg-gray-200 dark:bg-slate-800 my-auto" />
+          
+          {/* Calendar Icon -> Internal /book-demo */}
+          <Link
+            href={CAL_LINK}
+            aria-label="Book a Discovery Call"
+            className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          >
+            <Calendar className="w-5 h-5" />
+          </Link>
+
+          {/* Dashboard Button -> Outbound app.pyrexxai.com */}
+          <a
+            href="https://app.pyrexxai.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          >
+            Dashboard
+          </a>
+        </div>
+
+        {/* Mobile Navigation Toggle */}
+        <div className="flex items-center space-x-2 lg:hidden">
+          <ThemeToggle />
           <button 
-            className="md:hidden p-2 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
+            className="p-2 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
             onClick={() => setIsOpen(!isOpen)}
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -182,8 +198,9 @@ export default function Navbar() {
             {isOpen ? <CloseIcon className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
-      </div>
+      </nav>
 
+      {/* Mobile Glassmorphic Drawer */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
@@ -191,9 +208,9 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-20 left-0 w-full h-[calc(100vh-80px)] bg-white dark:bg-gray-950 shadow-xl p-6 flex flex-col space-y-4 md:hidden z-40 overflow-y-auto"
+            className="fixed top-24 left-4 right-4 bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border border-white/80 dark:border-white/10 shadow-2xl rounded-3xl p-6 flex flex-col space-y-4 lg:hidden z-40 max-h-[calc(100vh-8rem)] overflow-y-auto"
           >
-            <div className="py-2 border-b border-gray-100 dark:border-gray-800">
+            <div className="py-2 border-b border-gray-100 dark:border-slate-800">
               <button 
                 onClick={() => setMobileServicesOpen(!mobileServicesOpen)} 
                 className="flex items-center justify-between w-full text-gray-900 dark:text-white text-lg font-medium focus-visible:outline-none"
@@ -216,10 +233,10 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">How it Works</Link>
-            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-gray-800">Contact</Link>
+            <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-slate-800">How it Works</Link>
+            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-slate-800">Contact</Link>
             
-            <div className="py-2 border-b border-gray-100 dark:border-gray-800">
+            <div className="py-2 border-b border-gray-100 dark:border-slate-800">
               <button 
                 onClick={() => setMobileCompanyOpen(!mobileCompanyOpen)} 
                 className="flex items-center justify-between w-full text-gray-900 dark:text-white text-lg font-medium focus-visible:outline-none"
@@ -242,14 +259,27 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            <div className="pt-6">
-              <Link href={CAL_LINK} onClick={() => setIsOpen(false)} className="block w-full bg-brand-600 text-white px-5 py-4 rounded-xl text-center font-bold shadow-cta text-lg">
-                Book a Free Demo &rarr;
+            <div className="pt-4 grid grid-cols-2 gap-3">
+              <Link 
+                href={CAL_LINK} 
+                onClick={() => setIsOpen(false)} 
+                className="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white py-3 rounded-xl text-center font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <Calendar className="w-4 h-4" /> Book Demo
               </Link>
+              <a 
+                href="https://app.pyrexxai.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                onClick={() => setIsOpen(false)} 
+                className="bg-brand-600 text-white py-3 rounded-xl text-center font-bold text-sm shadow-cta"
+              >
+                Dashboard Portal &rarr;
+              </a>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </header>
   );
 }
