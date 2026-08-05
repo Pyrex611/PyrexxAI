@@ -57,12 +57,10 @@ export default function AIAssistant() {
     if (isOpen) scrollToBottom();
   }, [messages, isOpen, isTyping]);
 
-  // Zero-dependency, ultra-lightweight Markdown parser for link rendering and bold text
   const renderMessageContent = (text: string, role: "ai" | "user") => {
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     const boldRegex = /\*\*([^*]+)\*\*/g;
     
-    // Process markdown bold tags first
     let processedText = text.replace(boldRegex, "<strong>$1</strong>");
 
     const parts = [];
@@ -148,7 +146,7 @@ export default function AIAssistant() {
         {
           id: (Date.now() + 1).toString(),
           role: "ai",
-          content: "I'm having trouble connecting to the server. Please [book a free demo](https://cal.com/clifford-bulya/15min) to speak with our team!",
+          content: "I'm having trouble connecting to the server. Please [book a free demo](/book-demo) to speak with our team!",
         },
       ]);
     } finally {
@@ -180,7 +178,6 @@ export default function AIAssistant() {
             transition={{ duration: 0.2 }}
             className="mb-4 w-[calc(100vw-3rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-8rem)] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="bg-brand-600 text-white px-5 py-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -203,7 +200,6 @@ export default function AIAssistant() {
               </button>
             </div>
 
-            {/* Chat Area */}
             <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50 dark:bg-gray-900/50">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -224,7 +220,6 @@ export default function AIAssistant() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Smart Interaction: Suggestion Chips */}
             {!isTyping && (
               <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 flex flex-wrap gap-2 border-t border-gray-100 dark:border-gray-800">
                 {SUGGESTION_CHIPS.map((chip, i) => (
@@ -239,7 +234,6 @@ export default function AIAssistant() {
               </div>
             )}
 
-            {/* Input Form */}
             <form onSubmit={handleFormSubmit} className="p-4 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800">
               <div className="relative flex items-center">
                 <label htmlFor="chat-input" className="sr-only">Type your message to the AI assistant</label>
@@ -265,7 +259,6 @@ export default function AIAssistant() {
         )}
       </AnimatePresence>
 
-      {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-14 h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950 relative"

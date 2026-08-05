@@ -1,4 +1,4 @@
-export const CAL_LINK = "https://cal.com/clifford-bulya/15min";
+export const CAL_LINK = "/book-demo";
 
 export const getFadeUpVariants = (prefersReducedMotion: boolean | null) => {
   if (prefersReducedMotion) {
