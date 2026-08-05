@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, Menu, X as CloseIcon, ChevronDown, Calendar } from "lucide-react";
+import { CAL_LINK } from "@/lib/utils";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Navbar() {
@@ -167,7 +168,7 @@ export default function Navbar() {
           
           {/* Calendar Icon -> Internal /book-demo */}
           <Link
-            href="/book-demo"
+            href={CAL_LINK}
             aria-label="Book a Discovery Call"
             className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
@@ -188,14 +189,6 @@ export default function Navbar() {
         {/* Mobile Navigation Toggle */}
         <div className="flex items-center space-x-2 lg:hidden">
           <ThemeToggle />
-          <div className="hidden md:block">
-            <Link
-              href={CAL_LINK}
-              className="inline-flex bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
-            >
-              Book a Free Demo &rarr;
-            </Link>
-          </div>
           <button 
             className="p-2 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
             onClick={() => setIsOpen(!isOpen)}
@@ -266,10 +259,23 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            <div className="pt-6">
-              <Link href={CAL_LINK} onClick={() => setIsOpen(false)} className="block w-full bg-brand-600 text-white px-5 py-4 rounded-xl text-center font-bold shadow-cta text-lg">
-                Book a Free Demo &rarr;
+            <div className="pt-4 grid grid-cols-2 gap-3">
+              <Link 
+                href={CAL_LINK} 
+                onClick={() => setIsOpen(false)} 
+                className="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white py-3 rounded-xl text-center font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <Calendar className="w-4 h-4" /> Book Demo
               </Link>
+              <a 
+                href="https://app.pyrexxai.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                onClick={() => setIsOpen(false)} 
+                className="bg-brand-600 text-white py-3 rounded-xl text-center font-bold text-sm shadow-cta"
+              >
+                Dashboard Portal &rarr;
+              </a>
             </div>
           </motion.div>
         )}
