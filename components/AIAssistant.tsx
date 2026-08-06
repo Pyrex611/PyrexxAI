@@ -36,14 +36,18 @@ export default function AIAssistant() {
     setMounted(true);
     const savedMessages = sessionStorage.getItem("pyrexxai-chat-history");
     if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
+      try {
+        setMessages(JSON.parse(savedMessages));
+      } catch (e) {
+        setMessages([defaultMessage]);
+      }
     } else {
       setMessages([defaultMessage]);
     }
   }, []);
 
   useEffect(() => {
-    if (mounted) {
+    if (mounted && messages.length > 0) {
       sessionStorage.setItem("pyrexxai-chat-history", JSON.stringify(messages));
     }
   }, [messages, mounted]);
@@ -60,11 +64,11 @@ export default function AIAssistant() {
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     const boldRegex = /\*\*([^*]+)\*\*/g;
     
-    let processedText = text.replace(boldRegex, "<strong>$1</strong>");
+    const processedText = text.replace(boldRegex, "<strong>$1</strong>");
 
-    const parts = [];
+    const parts: React.ReactNode[] = [];
     let lastIndex = 0;
-    let match;
+    let match: RegExpExecArray | null;
 
     while ((match = linkRegex.exec(processedText)) !== null) {
       const [fullMatch, linkText, linkUrl] = match;
@@ -135,7 +139,6 @@ export default function AIAssistant() {
         throw new Error("API streaming error");
       }
 
-      // Handle Edge Stream Token Reader
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let streamText = "";
@@ -184,6 +187,7 @@ export default function AIAssistant() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            key="pyrexxai-chat-window"
             role="dialog"
             aria-modal="true"
             aria-label="PyrexxAI Virtual Assistant"
@@ -276,4 +280,15 @@ export default function AIAssistant() {
 
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="pointer-events-auto w-12 h-12 sm:w-14 sm:h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transit
+        className="pointer-events-auto w-12 h-12 sm:w-14 sm:h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 relative"
+        aria-label={isOpen ? "Close AI Assistant" : "Open AI Assistant"}
+        aria-expanded={isOpen}
+      >
+        {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />}
+        {!isOpen && (
+          <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white dark:border-gray-950 rounded-full"></span>
+        )}
+      </button>
+    </div>
+  );
+}
