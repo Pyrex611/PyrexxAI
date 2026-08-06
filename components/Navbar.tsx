@@ -61,8 +61,8 @@ export default function Navbar() {
   const isCompanyActive = pathname.startsWith("/about") || pathname.startsWith("/careers");
 
   return (
-    <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl z-50 transition-all duration-300">
-      <nav className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20 rounded-full px-4 sm:px-6 h-16 flex items-center justify-between">
+    <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)] max-w-7xl z-50 transition-all duration-300">
+      <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20 rounded-full px-4 sm:px-6 h-16 flex items-center justify-between transition-colors duration-300">
         
         {/* Left: Brand Logo & Name */}
         <Link href="/" className="flex items-center space-x-2.5 shrink-0 group" aria-label="PyrexxAI Home" onClick={() => setIsOpen(false)}>
@@ -108,7 +108,7 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
                 >
                   <div className="flex flex-col">
                     <Link href="/ai-receptionist" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">AI Receptionist</Link>
@@ -146,7 +146,7 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
                 >
                   <div className="flex flex-col">
                     <Link href="/about" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">About Us</Link>
@@ -163,10 +163,8 @@ export default function Navbar() {
         {/* Right: Controls & Portal Actions */}
         <div className="hidden md:flex items-center space-x-3">
           <ThemeToggle />
-          
           <div className="h-4 w-[1px] bg-gray-200 dark:bg-slate-800 my-auto" />
           
-          {/* Calendar Icon -> Internal /book-demo */}
           <Link
             href={CAL_LINK}
             aria-label="Book a Discovery Call"
@@ -175,7 +173,6 @@ export default function Navbar() {
             <Calendar className="w-5 h-5" />
           </Link>
 
-          {/* Dashboard Button -> Outbound app.pyrexxai.com */}
           <a
             href="https://app.pyrexxai.com"
             target="_blank"
@@ -190,7 +187,7 @@ export default function Navbar() {
         <div className="flex items-center space-x-2 lg:hidden">
           <ThemeToggle />
           <button 
-            className="p-2 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
+            className="p-2.5 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg active:bg-gray-100 dark:active:bg-slate-800"
             onClick={() => setIsOpen(!isOpen)}
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -204,16 +201,16 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-24 left-4 right-4 bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border border-white/80 dark:border-white/10 shadow-2xl rounded-3xl p-6 flex flex-col space-y-4 lg:hidden z-40 max-h-[calc(100vh-8rem)] overflow-y-auto"
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed top-24 left-3 right-3 sm:left-4 sm:right-4 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-white/80 dark:border-white/10 shadow-2xl rounded-3xl p-5 flex flex-col space-y-3 lg:hidden z-40 max-h-[85vh] overflow-y-auto scrollbar-hide"
           >
             <div className="py-2 border-b border-gray-100 dark:border-slate-800">
               <button 
                 onClick={() => setMobileServicesOpen(!mobileServicesOpen)} 
-                className="flex items-center justify-between w-full text-gray-900 dark:text-white text-lg font-medium focus-visible:outline-none"
+                className="flex items-center justify-between w-full text-gray-900 dark:text-white text-base font-semibold py-1 focus-visible:outline-none"
               >
                 Services <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${mobileServicesOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -223,23 +220,23 @@ export default function Navbar() {
                     initial={{ height: 0, opacity: 0 }} 
                     animate={{ height: "auto", opacity: 1 }} 
                     exit={{ height: 0, opacity: 0 }} 
-                    className="flex flex-col space-y-3 mt-4 pl-4 overflow-hidden"
+                    className="flex flex-col space-y-2.5 mt-3 pl-3 overflow-hidden"
                   >
-                    <Link href="/ai-receptionist" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">AI Receptionist</Link>
-                    <Link href="/website-building" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Website Building</Link>
-                    <Link href="/database-reactivation" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Database Reactivation</Link>
+                    <Link href="/ai-receptionist" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">AI Receptionist</Link>
+                    <Link href="/website-building" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">Website Building</Link>
+                    <Link href="/database-reactivation" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">Database Reactivation</Link>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-slate-800">How it Works</Link>
-            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-slate-800">Contact</Link>
+            <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-base font-semibold py-2 border-b border-gray-100 dark:border-slate-800">How it Works</Link>
+            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-base font-semibold py-2 border-b border-gray-100 dark:border-slate-800">Contact</Link>
             
             <div className="py-2 border-b border-gray-100 dark:border-slate-800">
               <button 
                 onClick={() => setMobileCompanyOpen(!mobileCompanyOpen)} 
-                className="flex items-center justify-between w-full text-gray-900 dark:text-white text-lg font-medium focus-visible:outline-none"
+                className="flex items-center justify-between w-full text-gray-900 dark:text-white text-base font-semibold py-1 focus-visible:outline-none"
               >
                 Company <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${mobileCompanyOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -249,21 +246,21 @@ export default function Navbar() {
                     initial={{ height: 0, opacity: 0 }} 
                     animate={{ height: "auto", opacity: 1 }} 
                     exit={{ height: 0, opacity: 0 }} 
-                    className="flex flex-col space-y-3 mt-4 pl-4 overflow-hidden"
+                    className="flex flex-col space-y-2.5 mt-3 pl-3 overflow-hidden"
                   >
-                    <Link href="/about" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">About Us</Link>
-                    <Link href="/#faq" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Help & Support</Link>
-                    <Link href="/careers" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Careers</Link>
+                    <Link href="/about" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">About Us</Link>
+                    <Link href="/#faq" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">Help & Support</Link>
+                    <Link href="/careers" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">Careers</Link>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <div className="pt-4 grid grid-cols-2 gap-3">
+            <div className="pt-3 grid grid-cols-2 gap-3">
               <Link 
                 href={CAL_LINK} 
                 onClick={() => setIsOpen(false)} 
-                className="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white py-3 rounded-xl text-center font-bold text-sm flex items-center justify-center gap-2"
+                className="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white py-3 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5"
               >
                 <Calendar className="w-4 h-4" /> Book Demo
               </Link>
@@ -272,7 +269,7 @@ export default function Navbar() {
                 target="_blank" 
                 rel="noopener noreferrer" 
                 onClick={() => setIsOpen(false)} 
-                className="bg-brand-600 text-white py-3 rounded-xl text-center font-bold text-sm shadow-cta"
+                className="bg-brand-600 text-white py-3 rounded-xl text-center font-bold text-xs shadow-cta"
               >
                 Dashboard Portal &rarr;
               </a>
