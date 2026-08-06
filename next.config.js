@@ -7,7 +7,7 @@ const nextConfig = {
     remotePatterns: [], 
   },
   compress: true,
-  // Next.js 14 specific config to bypass Webpack for React Email
+  // Bypass Webpack bundling for React Email & Heavy Server Utilities
   experimental: {
     serverComponentsExternalPackages: [
       '@react-email/components',
