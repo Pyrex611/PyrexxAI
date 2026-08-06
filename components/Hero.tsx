@@ -1,326 +1,300 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { 
-  Shield, Server, Activity, Users, ArrowRight, 
-  LayoutDashboard, BarChart3, User, PhoneCall, 
-  CalendarCheck, Clock, CheckCircle2, ChevronRight, Bot 
+import {
+  Shield, Server, Activity, Users, ArrowRight,
+  PhoneCall, Mic, Volume2, CheckCircle2, MessageSquare,
+  Sparkles, Bot, Clock, Calendar, Smartphone, ChevronRight
 } from "lucide-react";
 import { CAL_LINK, getFadeUpVariants, getStaggerContainer } from "@/lib/utils";
 
-type TabState = "dashboard" | "analytics" | "profile";
+type DemoMode = "call" | "message";
 
 export default function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const fadeUp = getFadeUpVariants(prefersReducedMotion);
   const stagger = getStaggerContainer(prefersReducedMotion);
-  const [activeTab, setActiveTab] = useState<TabState>("dashboard");
 
-  const tabContent = {
-    dashboard: {
-      title: "Live Operations",
-      desc: "Monitor your AI receptionist in real-time from anywhere. Watch as it answers calls, writes directly to your EMR, and secures missed opportunities without human intervention."
-    },
-    analytics: {
-      title: "Growth Metrics",
-      desc: "Track your patient acquisition costs, deflection rates, and net ROI effortlessly. Complete transparency into how your AI agent is compounding your clinic's revenue."
-    },
-    profile: {
-      title: "Clinic Configuration",
-      desc: "Update your business hours, securely manage your EMR API connections, and review your HIPAA Business Associate Agreement directly from your mobile device."
-    }
+  const [mode, setMode] = useState<DemoMode>("call");
+  const [callState, setCallState] = useState<"connecting" | "active" | "synced">("active");
+  const [seconds, setSeconds] = useState(42);
+
+  // Simulated live call timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTimer = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   return (
-    <section className="relative pt-32 pb-16 overflow-hidden dark:bg-gray-950 transition-colors duration-300">
-      {/* Background Gradients */}
+    <section className="relative pt-32 pb-20 overflow-hidden dark:bg-gray-950 transition-colors duration-300">
+      {/* Background Radial Glow Effects */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl -z-10 pointer-events-none">
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-brand-100/40 dark:bg-brand-900/20 blur-[100px] rounded-full" />
-        <div className="absolute top-40 left-1/4 w-[600px] h-[300px] bg-accent-50/40 dark:bg-accent-900/20 blur-[100px] rounded-full" />
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[850px] h-[450px] bg-brand-500/15 dark:bg-brand-600/20 blur-[120px] rounded-full" />
+        <div className="absolute top-40 left-1/4 w-[500px] h-[250px] bg-accent-500/15 dark:bg-accent-600/15 blur-[100px] rounded-full" />
       </div>
 
-      <div className="max-w-7xl mx-auto text-center">
-        <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-4xl mx-auto space-y-8 mb-12 px-6">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
-          <motion.h1 variants={fadeUp} className="text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold tracking-tight text-gray-900 dark:text-white leading-[1.1]">
-            Your Clinic's Front Desk.<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent-600 dark:from-brand-400 dark:to-accent-400">
-              Reimagined with AI.
-            </span>
-          </motion.h1>
-          
-          <motion.p variants={fadeUp} className="text-lg lg:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            38% of patient calls go unanswered. PyrexxAI deploys custom voice AI that answers every call 24/7, books directly into your schedule, and qualifies every lead.
-          </motion.p>
-          
-          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 pt-2">
-            <Link href={CAL_LINK} className="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full text-base font-semibold transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950">
-              Book a Free Demo &rarr;
-            </Link>
-            <Link href="/#how-it-works" className="w-full sm:w-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200 px-8 py-4 rounded-full text-base font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950">
-              See How It Works
-            </Link>
-          </motion.div>
-        </motion.div>
-
-        {/* Horizontally Scrollable Mobile Pill Menu */}
-        <motion.div 
-          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="w-full overflow-x-auto scrollbar-hide pb-4 mb-8 flex lg:justify-center px-6 lg:px-0"
-        >
-          <div className="flex gap-2 bg-gray-100/80 dark:bg-gray-900/50 p-1.5 rounded-full border border-gray-200/50 dark:border-gray-800/80 shadow-inner w-max shrink-0">
-            <Link href="/hipaa-compliance" className="px-4 py-1.5 rounded-full text-xs font-semibold bg-brand-600 text-white shadow-sm hover:bg-brand-700 transition-colors flex items-center gap-1.5 shrink-0">
-              <Shield className="w-3.5 h-3.5" /> HIPAA Compliant
-            </Link>
-            <span className="px-4 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-1.5 shrink-0">
-              <Server className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" /> Live in 14 Days
-            </span>
-            <span className="px-4 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-1.5 shrink-0">
-              <Activity className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" /> 99.9% Uptime
-            </span>
-            <span className="px-4 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-1.5 shrink-0">
-              <Users className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" /> 24/7 Coverage
-            </span>
-          </div>
-        </motion.div>
-
-        {/* 3-Column Interactive Widget Section */}
-        <motion.div 
-          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12 lg:gap-8 px-6 mt-16"
-        >
-          {/* Left Column: Navigation Tabs */}
-          <div className="flex lg:flex-col gap-3 w-full lg:w-56 overflow-x-auto scrollbar-hide pb-2 lg:pb-0 shrink-0 lg:mt-10">
-            {[
-              { id: "dashboard", icon: LayoutDashboard, label: "Live Dashboard" },
-              { id: "analytics", icon: BarChart3, label: "Performance" },
-              { id: "profile", icon: User, label: "Clinic Profile" }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabState)}
-                  className={`flex items-center gap-3 px-5 py-4 rounded-2xl text-sm font-semibold transition-all shrink-0 lg:w-full ${
-                    isActive 
-                      ? "bg-brand-600 text-white shadow-md shadow-brand-500/20" 
-                      : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Center Column: The Mobile Widget */}
-          <motion.div 
-            animate={prefersReducedMotion ? {} : { y: [0, -8, 0] }} 
-            transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-            className="shrink-0 relative w-[300px] h-[600px] bg-gray-900 dark:bg-black rounded-[3rem] p-2.5 shadow-2xl border border-gray-800"
+          {/* Left Column: Socially Engineered & SEO-Targeted Copywriting */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+            className="lg:col-span-7 space-y-8 text-center lg:text-left"
           >
-            {/* The Inner Screen */}
-            <div className="w-full h-full bg-gray-50 dark:bg-[#0A0B0D] rounded-[2.5rem] overflow-hidden relative flex flex-col border border-gray-800/50">
-              
-              {/* iPhone Notch */}
-              <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
-                <div className="w-32 h-5 bg-gray-900 dark:bg-black rounded-b-xl"></div>
+            {/* Social Trust Badge */}
+            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800/60 px-4 py-2 rounded-full text-brand-700 dark:text-brand-300 text-xs font-bold uppercase tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              <span>Stop Losing $3,000 Patients To Voicemail</span>
+            </motion.div>
+
+            {/* Core SEO Targeted Headline */}
+            <motion.h1
+              variants={fadeUp}
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-[1.08]"
+            >
+              The 24/7 Voice AI <br className="hidden sm:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-brand-500 to-accent-500 dark:from-brand-400 dark:via-brand-300 dark:to-accent-400">
+                Front Desk for Clinics.
+              </span>
+            </motion.h1>
+
+            {/* Social Proof & Value Prop Paragraph */}
+            <motion.p
+              variants={fadeUp}
+              className="text-lg lg:text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0"
+            >
+              38% of healthcare calls go unanswered. PyrexxAI deploys lifelike AI receptionists that answer every inbound call instantly, verify pricing, and write bookings directly into your EMR.
+            </motion.p>
+
+            {/* High-Contrast Conversion Action Buttons */}
+            <motion.div
+              variants={fadeUp}
+              className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2"
+            >
+              <Link
+                href={CAL_LINK}
+                className="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full text-base font-bold transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-center"
+              >
+                Book a Free Demo &rarr;
+              </Link>
+              <Link
+                href="/dashboard"
+                className="w-full sm:w-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-gray-800 dark:text-gray-200 px-8 py-4 rounded-full text-base font-semibold transition-all text-center flex items-center justify-center gap-2"
+              >
+                Try Live Dashboard
+              </Link>
+            </motion.div>
+
+            {/* Trust Anchors Footer Bar */}
+            <motion.div
+              variants={fadeUp}
+              className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-gray-500 dark:text-gray-400 font-medium"
+            >
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-emerald-500" />
+                <span>HIPAA Compliant (BAA Provided)</span>
               </div>
+              <div className="flex items-center gap-1.5">
+                <Server className="w-4 h-4 text-brand-500" />
+                <span>Native EMR API Bridges</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-amber-500" />
+                <span>14-Day Deployment</span>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Right Column: Blooio-Inspired iPhone Phone Demo Widget */}
+          <motion.div
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="lg:col-span-5 flex flex-col items-center justify-center relative"
+          >
+            {/* Mode Switcher Pill */}
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200 dark:border-gray-800 p-1.5 rounded-full shadow-lg mb-6 flex gap-1 z-20">
+              <button
+                onClick={() => setMode("call")}
+                className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold transition-all ${
+                  mode === "call"
+                    ? "bg-brand-600 text-white shadow-md"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                }`}
+              >
+                <PhoneCall className="w-3.5 h-3.5" /> AI Inbound Call
+              </button>
+              <button
+                onClick={() => setMode("message")}
+                className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold transition-all ${
+                  mode === "message"
+                    ? "bg-brand-600 text-white shadow-md"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" /> iMessage Intake
+              </button>
+            </div>
+
+            {/* Apple iPhone Bezel Container */}
+            <div className="relative w-[320px] sm:w-[350px] h-[640px] bg-gray-900 dark:bg-black rounded-[3.2rem] p-3 shadow-2xl border-4 border-gray-800 dark:border-gray-900 ring-1 ring-white/10">
               
-              {/* Top Status Bar */}
-              <div className="h-10 w-full px-6 flex justify-between items-end pb-1 text-[10px] font-medium text-gray-500 z-20">
-                <span>9:41</span>
-                <div className="flex gap-1 items-center">
-                  <div className="w-3 h-2.5 bg-gray-500 rounded-sm"></div>
-                  <div className="w-4 h-2.5 bg-gray-500 rounded-sm"></div>
+              {/* Screen Shell */}
+              <div className="w-full h-full bg-white dark:bg-[#0A0B0D] rounded-[2.6rem] overflow-hidden relative flex flex-col justify-between border border-gray-200 dark:border-gray-800">
+                
+                {/* Dynamic Island / Notch */}
+                <div className="absolute top-0 inset-x-0 h-7 flex justify-center z-40 pointer-events-none">
+                  <div className="w-28 h-5 bg-gray-900 dark:bg-black rounded-b-2xl flex items-center justify-end px-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-brand-500/80 animate-pulse"></div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Screen Content Wrapper */}
-              <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pb-24 relative">
-                <AnimatePresence mode="wait">
-                  
-                  {/* Dashboard View */}
-                  {activeTab === "dashboard" && (
-                    <motion.div key="dashboard" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} transition={{duration: 0.2}} className="space-y-4 pt-2">
-                      <div className="flex justify-between items-center mb-6">
-                        <div>
-                          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
-                          <p className="text-xs text-gray-500">Welcome, Elite MedSpa</p>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-brand-600 dark:text-brand-400">
-                          <Bot className="w-4 h-4" />
-                        </div>
-                      </div>
+                {/* Top Status Header */}
+                <div className="h-10 px-6 pt-2 flex justify-between items-center text-[10px] font-semibold text-gray-500 dark:text-gray-400 z-30">
+                  <span>9:41</span>
+                  <div className="flex items-center gap-1.5">
+                    <Activity className="w-3 h-3 text-emerald-500" />
+                    <span>5G</span>
+                  </div>
+                </div>
 
-                      {/* Active Call Card */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-brand-100 dark:border-brand-800">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase">Live Call</span>
+                {/* Screen Dynamic Body */}
+                <div className="flex-1 px-4 pt-2 pb-6 overflow-y-auto scrollbar-hide flex flex-col justify-between">
+                  <AnimatePresence mode="wait">
+                    
+                    {/* MODE 1: LIVE VOICE AI CALL */}
+                    {mode === "call" && (
+                      <motion.div
+                        key="call-mode"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex-1 flex flex-col justify-between space-y-4"
+                      >
+                        {/* Call Active Header */}
+                        <div className="text-center pt-2 space-y-1">
+                          <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-[10px] font-bold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                            Live Voice Agent Active
                           </div>
-                          <span className="text-xs font-semibold text-gray-500 tabular-nums">01:24</span>
+                          <h3 className="text-lg font-extrabold text-gray-900 dark:text-white">Luxe Aesthetics</h3>
+                          <p className="text-xs text-gray-400 font-mono">{formatTimer(seconds)}</p>
                         </div>
-                        <div className="flex gap-3 items-center">
-                          <div className="w-10 h-10 bg-brand-50 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                            <PhoneCall className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+
+                        {/* Audio Wave Visualizer */}
+                        <div className="bg-brand-50/50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800/60 rounded-2xl p-4 text-center">
+                          <div className="flex justify-center items-center gap-1 h-8 mb-2">
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-4"></span>
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-7"></span>
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-5"></span>
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-8"></span>
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-3"></span>
                           </div>
+                          <span className="text-[10px] font-semibold text-brand-700 dark:text-brand-300">
+                            PyrexxAI Voice Engine Standard Quality
+                          </span>
+                        </div>
+
+                        {/* Live Call Transcript Bubble Stream */}
+                        <div className="space-y-2 text-xs">
+                          <div className="bg-gray-100 dark:bg-gray-800 p-2.5 rounded-xl rounded-tl-none text-gray-800 dark:text-gray-200">
+                            <p className="font-bold text-[9px] text-gray-500 mb-0.5">Caller (+1 302 ***-1284)</p>
+                            "I'd like to book Botox with Dr. Jenkins next Tuesday at 2 PM."
+                          </div>
+
+                          <div className="bg-brand-600 text-white p-2.5 rounded-xl rounded-tr-none ml-2">
+                            <p className="font-bold text-[9px] text-brand-200 mb-0.5">PyrexxAI Voice Agent</p>
+                            "Dr. Jenkins has 2:00 PM available next Tuesday! I'll reserve that slot for you now."
+                          </div>
+                        </div>
+
+                        {/* Direct EMR Write Confirmation Notification */}
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-3 flex items-center gap-2.5 shadow-sm">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                           <div>
-                            <p className="text-sm font-bold text-gray-900 dark:text-white">+1 (415) ***-8291</p>
-                            <p className="text-xs text-gray-500">Intent: Booking Appt</p>
+                            <p className="text-xs font-bold text-gray-900 dark:text-white">Jane App EMR Synced</p>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400">Appointment confirmed & written</p>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
+                    )}
 
-                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-6 mb-3">Recent Activity</h3>
-                      <div className="space-y-2">
-                        {[
-                          { name: "Sarah J.", intent: "Consultation", time: "10m ago" },
-                          { name: "Mike T.", intent: "Reschedule", time: "1h ago" },
-                          { name: "Anna L.", intent: "Pricing Info", time: "3h ago" },
-                        ].map((call, i) => (
-                          <div key={i} className="bg-white dark:bg-gray-900 p-3 rounded-xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                                <CheckCircle2 className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <p className="text-xs font-bold text-gray-900 dark:text-white">{call.name}</p>
-                                <p className="text-[10px] text-gray-500">{call.intent}</p>
-                              </div>
-                            </div>
-                            <span className="text-[10px] text-gray-400">{call.time}</span>
+                    {/* MODE 2: iMESSAGE INTAKE AUTOMATION */}
+                    {mode === "message" && (
+                      <motion.div
+                        key="msg-mode"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex-1 flex flex-col justify-between space-y-3"
+                      >
+                        <div className="text-center pt-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+                          <div className="w-10 h-10 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center mx-auto text-xs shadow-md mb-1">
+                            PX
                           </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Analytics View */}
-                  {activeTab === "analytics" && (
-                    <motion.div key="analytics" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} transition={{duration: 0.2}} className="space-y-4 pt-2">
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Performance</h2>
-                      
-                      <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                          <p className="text-[10px] text-gray-500 uppercase font-semibold">Total Calls</p>
-                          <p className="text-xl font-bold text-gray-900 dark:text-white">842</p>
+                          <p className="text-xs font-bold text-gray-900 dark:text-white">PyrexxAI iMessage Intake</p>
+                          <p className="text-[10px] text-emerald-500 font-semibold">Sub-60s Automated Reply</p>
                         </div>
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                          <p className="text-[10px] text-gray-500 uppercase font-semibold">AI Bookings</p>
-                          <p className="text-xl font-bold text-brand-600 dark:text-brand-400">312</p>
-                        </div>
-                      </div>
 
-                      <div className="bg-brand-600 p-5 rounded-2xl text-white">
-                        <p className="text-xs text-brand-200 uppercase font-semibold mb-1">Net ROI Generated</p>
-                        <p className="text-2xl font-bold">$18,400</p>
-                      </div>
-
-                      <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 mt-4 space-y-4">
-                        <div>
-                          <div className="flex justify-between text-xs font-semibold mb-1">
-                            <span className="text-gray-600 dark:text-gray-300">Resolution Rate</span>
-                            <span className="text-emerald-500">94%</span>
+                        <div className="space-y-2 text-xs flex-1 overflow-y-auto">
+                          <div className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white p-2.5 rounded-2xl rounded-bl-none max-w-[85%]">
+                            Hi, what is the price for dermal fillers?
                           </div>
-                          <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-emerald-500 h-full w-[94%] rounded-full"></div>
+
+                          <div className="bg-brand-600 text-white p-2.5 rounded-2xl rounded-br-none ml-auto max-w-[88%] shadow-sm">
+                            Hello! Dermal fillers start at $650/syringe. Would you like to check Dr. Jenkins' open consultation slots for this week?
+                          </div>
+
+                          <div className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white p-2.5 rounded-2xl rounded-bl-none max-w-[85%]">
+                            Yes please, Thursday afternoon works!
+                          </div>
+
+                          <div className="bg-brand-600 text-white p-2.5 rounded-2xl rounded-br-none ml-auto max-w-[88%] shadow-sm">
+                            Great! I have reserved Thursday at 3:30 PM in Boulevard EMR. See you then!
                           </div>
                         </div>
-                        <div>
-                          <div className="flex justify-between text-xs font-semibold mb-1">
-                            <span className="text-gray-600 dark:text-gray-300">EMR Sync Accuracy</span>
-                            <span className="text-brand-500">100%</span>
-                          </div>
-                          <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-brand-500 h-full w-full rounded-full"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
 
-                  {/* Profile View */}
-                  {activeTab === "profile" && (
-                    <motion.div key="profile" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} transition={{duration: 0.2}} className="space-y-4 pt-2">
-                      <div className="flex flex-col items-center justify-center py-6">
-                        <div className="w-20 h-20 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center text-2xl font-bold text-gray-500 mb-3 border-4 border-white dark:border-gray-950 shadow-sm">
-                          EA
+                        <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full flex items-center justify-between text-xs text-gray-400 px-4">
+                          <span>iMessage</span>
+                          <span className="w-5 h-5 rounded-full bg-brand-600 text-white flex items-center justify-center text-[10px]">↑</span>
                         </div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Elite Aesthetics</h2>
-                        <span className="text-xs text-emerald-500 font-semibold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded mt-2">Active Plan</span>
-                      </div>
+                      </motion.div>
+                    )}
 
-                      <div className="space-y-2">
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">EMR Integration</span>
-                          <span className="text-xs bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 px-2 py-1 rounded font-bold">Jane App</span>
-                        </div>
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">HIPAA BAA</span>
-                          <span className="text-xs text-gray-500">Signed May 2026</span>
-                        </div>
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Prompt Settings</span>
-                          <ChevronRight className="w-4 h-4 text-gray-400" />
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
+                  </AnimatePresence>
+                </div>
 
-                </AnimatePresence>
+                {/* Bottom Home Indicator Bar */}
+                <div className="h-4 flex justify-center items-center pb-1">
+                  <div className="w-28 h-1 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+                </div>
+
               </div>
+            </div>
 
-              {/* App Bottom Navigation */}
-              <div className="absolute bottom-0 w-full h-20 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 flex justify-around items-center px-4 pb-4 pt-2 z-30">
-                <button onClick={() => setActiveTab("dashboard")} className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>
-                  <LayoutDashboard className="w-5 h-5" />
-                  <span className="text-[10px] font-semibold">Home</span>
-                </button>
-                <button onClick={() => setActiveTab("analytics")} className={`flex flex-col items-center gap-1 ${activeTab === 'analytics' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>
-                  <BarChart3 className="w-5 h-5" />
-                  <span className="text-[10px] font-semibold">Metrics</span>
-                </button>
-                <button onClick={() => setActiveTab("profile")} className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>
-                  <User className="w-5 h-5" />
-                  <span className="text-[10px] font-semibold">Profile</span>
-                </button>
+            {/* Floating Live Badge Overlay */}
+            <div className="absolute -bottom-4 right-2 sm:-right-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-3.5 rounded-2xl shadow-xl flex items-center gap-3 z-30">
+              <div className="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
+              <div>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">100% HIPAA Verified</p>
+                <p className="text-[10px] text-gray-500">Zero PHI Stored Post-Call</p>
               </div>
-
             </div>
           </motion.div>
 
-          {/* Right Column: Context & CTA */}
-          <div className="flex-1 text-center lg:text-left w-full max-w-sm lg:mt-10">
-            <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-              {tabContent[activeTab].title}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed text-sm md:text-base">
-              {tabContent[activeTab].desc}
-            </p>
-            <div className="space-y-4">
-              <Link 
-                href={CAL_LINK} 
-                className="w-full sm:w-auto inline-flex items-center justify-center bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl text-sm font-bold transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-              >
-                Request Setup <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-              <p className="text-xs text-gray-500 dark:text-gray-500 font-medium">
-                Or create a free account to explore the dashboard yourself.
-              </p>
-            </div>
-          </div>
-
-        </motion.div>
+        </div>
       </div>
     </section>
   );

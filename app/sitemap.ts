@@ -3,7 +3,7 @@ import { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://pyrexxai.com";
 
-  return [
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -77,4 +77,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
   ];
+
+  // Programmatic pSEO routes
+  const pseoSlugs = [
+    "jane-app-medspa",
+    "boulevard-aesthetics",
+    "mindbody-dental"
+  ];
+
+  const pseoPages: MetadataRoute.Sitemap = pseoSlugs.map((slug) => ({
+    url: `${baseUrl}/integrations/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.85,
+  }));
+
+  return [...staticPages, ...pseoPages];
 }
