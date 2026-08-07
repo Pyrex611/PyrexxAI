@@ -49,12 +49,6 @@ export default function Hero() {
             variants={stagger}
             className="lg:col-span-7 space-y-6 sm:space-y-8 text-center lg:text-left"
           >
-            {/* Social Trust Badge */}
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800/60 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-brand-700 dark:text-brand-300 text-xs font-bold uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <span>Stop Losing $3,000 Patients To Voicemail</span>
-            </motion.div>
-
             {/* Core SEO Targeted Headline */}
             <motion.h1
               variants={fadeUp}
@@ -258,7 +252,7 @@ export default function Hero() {
                           </div>
 
                           <div className="bg-brand-600 text-white p-2 rounded-xl rounded-br-none ml-auto max-w-[88%] shadow-sm">
-                            Reserved Thursday at 3:30 PM in Boulevard EMR!
+                            Reserved FOR Thursday at 3:30 PM!
                           </div>
                         </div>
 

@@ -14,7 +14,7 @@ type Message = {
 const defaultMessage: Message = {
   id: "1",
   role: "ai",
-  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant. Ask me anything about our EMR integrations, HIPAA compliance, or pricing setup!",
+  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant. Ask me anything about our Services",
 };
 
 const SUGGESTION_CHIPS = [
