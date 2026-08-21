@@ -1,20 +1,35 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  trailingSlash: false,
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    remotePatterns: [], 
+    remotePatterns: [],
   },
   compress: true,
-  // Bypass Webpack bundling for React Email & Heavy Server Utilities
   experimental: {
     serverComponentsExternalPackages: [
-      '@react-email/components',
-      '@react-email/render',
-      'html-to-text',
-      'resend'
+      "@react-email/components",
+      "@react-email/render",
+      "html-to-text",
+      "resend",
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.pyrexxai.com",
+          },
+        ],
+        destination: "https://pyrexxai.com/:path*",
+        permanent: true,
+      },
+    ];
   },
   async headers() {
     return [
@@ -45,6 +60,6 @@ const nextConfig = {
       },
     ];
   },
-}
+};
 
 module.exports = nextConfig;

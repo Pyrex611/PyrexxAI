@@ -17,14 +17,12 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 
 export default function Footer() {
   return (
-    <footer className="bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 pt-16 pb-8 transition-colors duration-300">
+    <footer className="bg-white dark:bg-[#0B0F17] border-t border-gray-100 dark:border-gray-800 pt-16 pb-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 md:gap-12 mb-16">
-          
           <div className="col-span-2 lg:col-span-2 flex flex-col space-y-4">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative w-9 h-9 rounded-full bg-brand-600 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform shadow-sm">
+              <div className="relative w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform shadow-sm">
                 <Image src="/logo.png" alt="PyrexxAI Logo" fill sizes="36px" quality={100} className="object-cover z-10" />
                 <Bot className="text-white w-5 h-5 absolute z-0" />
               </div>
@@ -43,7 +41,7 @@ export default function Footer() {
               <a href="https://tiktok.com/@pyrexx_ai" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"><TikTokIcon className="w-5 h-5" /></a>
             </div>
           </div>
-          
+
           <div className="col-span-2 lg:col-span-1">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Get in Touch</h4>
             <ul className="space-y-4">
@@ -79,7 +77,7 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        
+
         <div className="border-t border-gray-100 dark:border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-gray-400 dark:text-gray-500">© {new Date().getFullYear()} PyrexxAI. All rights reserved.</p>
           <div className="flex gap-4">

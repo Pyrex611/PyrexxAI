@@ -13,14 +13,13 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // In the future, this is where you would log the error to Sentry
-    console.error("Application Error:", error);
+    console.error("Application runtime error:", error);
   }, [error]);
 
   return (
-    <main className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+    <main className="min-h-screen flex flex-col bg-white dark:bg-[#0B0F17] text-gray-900 dark:text-gray-50 transition-colors duration-300">
       <Navbar />
-      
+
       <section className="flex-grow flex items-center justify-center pt-32 pb-24 px-6">
         <div className="max-w-xl mx-auto text-center">
           <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-full flex items-center justify-center mx-auto mb-8">
@@ -34,13 +33,13 @@ export default function Error({
           </p>
           <button
             onClick={() => reset()}
-            className="inline-flex bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl text-base font-bold transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 items-center justify-center"
+            className="inline-flex bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full text-base font-bold transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 items-center justify-center"
           >
             <RefreshCcw className="w-5 h-5 mr-2" /> Try Again
           </button>
         </div>
       </section>
-      
+
       <Footer />
     </main>
   );

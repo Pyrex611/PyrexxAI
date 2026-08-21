@@ -20,16 +20,20 @@ export default function AboutPage() {
     jobTitle: "Founder & CEO",
     worksFor: {
       "@type": "Organization",
-      name: "PyrexxAI"
+      name: "PyrexxAI",
     },
-    url: "https://pyrexxai.com/about"
+    url: "https://pyrexxai.com/about",
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+    <main className="min-h-screen bg-white dark:bg-[#0B0F17] text-gray-900 dark:text-gray-50 transition-colors duration-300">
       <Navbar />
-      <Script id="schema-person" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
-      
+      <Script
+        id="schema-person"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
+
       <section className="pt-32 pb-20 px-6 max-w-4xl mx-auto text-center">
         <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6">
           Bridging the Gap Between <br />
@@ -50,7 +54,7 @@ export default function AboutPage() {
               The healthcare industry has been historically underserved by modern technology. While other sectors adopted seamless automation, medical clinics were left with disjointed EMR systems, expensive after-hours answering services, and overwhelmed front-desk staff.
             </p>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              We built PyrexxAI not as a DIY software tool, but as a dedicated technical partner. When you partner with us, we map your exact clinical workflows, custom-train conversational language models on your procedures, and build secure, HIPAA-compliant API bridges directly into your scheduling software. We handle the technical complexity so you can focus on patient care.
+              We built PyrexxAI not as a DIY software tool, but as a dedicated technical partner. When you partner with us, we map your exact clinical workflows, custom-train conversational language models on your procedures, and build secure, HIPAA-compliant API bridges directly into your scheduling software.
             </p>
           </div>
         </div>
