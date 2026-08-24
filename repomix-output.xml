@@ -47,6 +47,7 @@ app/about/page.tsx
 app/actions/contact.ts
 app/ai-receptionist/page.tsx
 app/api/chat/route.ts
+app/api/og/route.tsx
 app/book-demo/page.tsx
 app/careers/page.tsx
 app/contact/page.tsx
@@ -56,6 +57,7 @@ app/database-reactivation/page.tsx
 app/error.tsx
 app/globals.css
 app/hipaa-compliance/page.tsx
+app/integrations/[slug]/page.tsx
 app/layout.tsx
 app/not-found.tsx
 app/page.tsx
@@ -319,6 +321,130 @@ export default function AboutPage() {
       <Footer />
     </main>
   );
+}
+</file>
+
+<file path="app/api/og/route.tsx">
+import { ImageResponse } from "next/og";
+
+export const runtime = "edge";
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const title = searchParams.get("title") || "AI Voice Receptionist for Medical Clinics";
+    const subtitle = searchParams.get("subtitle") || "Answer every patient call 24/7 & sync directly with your EMR.";
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            backgroundColor: "#0B0F17",
+            padding: "80px",
+            fontFamily: "sans-serif",
+            backgroundImage: "radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.25) 0%, transparent 50%)",
+          }}
+        >
+          {/* Header Branding */}
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div
+              style={{
+                width: "48px",
+                height: "48px",
+                borderRadius: "12px",
+                backgroundColor: "#2563EB",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#FFFFFF",
+                fontSize: "24px",
+                fontWeight: "bold",
+              }}
+            >
+              PX
+            </div>
+            <span style={{ fontSize: "32px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.02em" }}>
+              PyrexxAI
+            </span>
+            <div
+              style={{
+                marginLeft: "16px",
+                backgroundColor: "rgba(16, 185, 129, 0.15)",
+                border: "1px solid rgba(16, 185, 129, 0.4)",
+                borderRadius: "999px",
+                padding: "6px 16px",
+                color: "#10B981",
+                fontSize: "14px",
+                fontWeight: "700",
+                textTransform: "uppercase",
+              }}
+            >
+              HIPAA Compliant
+            </div>
+          </div>
+
+          {/* Main Title & Subtitle */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "950px" }}>
+            <h1
+              style={{
+                fontSize: "56px",
+                fontWeight: "900",
+                color: "#FFFFFF",
+                lineHeight: "1.1",
+                letterSpacing: "-0.03em",
+                margin: "0",
+              }}
+            >
+              {title}
+            </h1>
+            <p style={{ fontSize: "24px", color: "#9CA3AF", lineHeight: "1.4", margin: "0" }}>
+              {subtitle}
+            </p>
+          </div>
+
+          {/* Footer Metrics */}
+          <div
+            style={{
+              display: "flex",
+              width: "100%",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+              paddingTop: "32px",
+            }}
+          >
+            <div style={{ display: "flex", gap: "40px" }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontSize: "14px", color: "#6B7280", textTransform: "uppercase", fontWeight: "600" }}>
+                  Deployment Time
+                </span>
+                <span style={{ fontSize: "22px", color: "#60A5FA", fontWeight: "800" }}>14 Days Guaranteed</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontSize: "14px", color: "#6B7280", textTransform: "uppercase", fontWeight: "600" }}>
+                  EMR Integration
+                </span>
+                <span style={{ fontSize: "22px", color: "#60A5FA", fontWeight: "800" }}>Jane / Boulevard / Mindbody</span>
+              </div>
+            </div>
+            <span style={{ fontSize: "18px", color: "#2563EB", fontWeight: "700" }}>pyrexxai.com</span>
+          </div>
+        </div>
+      ),
+      {
+        width: 1200,
+        height: 630,
+      }
+    );
+  } catch (e: any) {
+    return new Response(`Failed to generate OpenGraph image`, { status: 500 });
+  }
 }
 </file>
 
@@ -1047,6 +1173,211 @@ export default function HIPAACompliancePage() {
             </p>
           </div>
 
+        </div>
+      </section>
+
+      <CTA />
+      <Footer />
+    </main>
+  );
+}
+</file>
+
+<file path="app/integrations/[slug]/page.tsx">
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import CTA from "@/components/CTA";
+import Footer from "@/components/Footer";
+import Script from "next/script";
+import { CheckCircle2, ShieldCheck, Zap, Calendar, ArrowRight, PhoneCall } from "lucide-react";
+import { CAL_LINK } from "@/lib/utils";
+
+type IntegrationDetail = {
+  slug: string;
+  name: string;
+  category: string;
+  emrName: string;
+  description: string;
+  heroHeadline: string;
+  benefits: string[];
+  features: { title: string; desc: string }[];
+};
+
+const INTEGRATION_DATA: Record<string, IntegrationDetail> = {
+  "jane-app-medspa": {
+    slug: "jane-app-medspa",
+    name: "Jane App AI Receptionist for MedSpas",
+    category: "Medical Spa / Aesthetics",
+    emrName: "Jane App",
+    heroHeadline: "Seamless Jane App EMR Voice Automation for MedSpas",
+    description: "Connect PyrexxAI natively to your Jane App calendar. Our custom voice receptionist handles 100% of inbound phone calls, checks practitioner openings in real-time, and writes Botox & dermal filler bookings directly into your schedule.",
+    benefits: [
+      "Zero double bookings: Reads live Jane App availability.",
+      "Custom service treatment duration routing.",
+      "Instant patient SMS text-back on missed calls.",
+      "Signed HIPAA Business Associate Agreement (BAA) included."
+    ],
+    features: [
+      { title: "Real-Time Jane App API Sync", desc: "Instantly creates or updates patient appointment profiles without manual front-desk entry." },
+      { title: "Treatment FAQ & Pricing Agent", desc: "Answers precise patient questions regarding Botox units, syringe pricing, and pre-care guidelines." },
+      { title: "24/7 After-Hours Intake", desc: "Captures evening and weekend calls when your clinic is closed, driving up monthly client retention." }
+    ]
+  },
+  "boulevard-aesthetics": {
+    slug: "boulevard-aesthetics",
+    name: "Boulevard EMR AI Receptionist for Aesthetic Clinics",
+    category: "Aesthetic Surgery & Clinics",
+    emrName: "Boulevard",
+    heroHeadline: "Enterprise Boulevard Integration for High-Volume Aesthetic Clinics",
+    description: "Automate your front desk with a lifelike AI receptionist designed specifically for Boulevard EMR users. Elevate client experience and increase lifetime revenue.",
+    benefits: [
+      "Direct Boulevard calendar & client management sync.",
+      "Automated deposit payment reminder workflows.",
+      "Custom voice training tailored to luxury aesthetics.",
+      "Full HIPAA compliance and encrypted PHI transmission."
+    ],
+    features: [
+      { title: "Boulevard Schedule Optimization", desc: "Intelligently fills practitioner schedule gaps to maximize clinic hourly revenue." },
+      { title: "Pre-Treatment Consultation Screening", desc: "Qualifies high-intent cosmetic leads before placing them directly into your calendar." },
+      { title: "Multi-Location Support", desc: "Routes inbound calls seamlessly across multiple aesthetic clinic locations." }
+    ]
+  },
+  "mindbody-dental": {
+    slug: "mindbody-dental",
+    name: "Mindbody AI Voice Agent for Dental & Wellness Practices",
+    category: "Dental & Wellness Practices",
+    emrName: "Mindbody",
+    heroHeadline: "Eliminate Unanswered Dental Calls with Mindbody AI Voice Automation",
+    description: "Never send a dental emergency or teeth whitening lead to voicemail again. PyrexxAI connects directly into Mindbody to schedule patient visits 24/7.",
+    benefits: [
+      "24/7 emergency triage call routing.",
+      "Automated cleaning & checkup reactivation.",
+      "Mindbody appointment availability read & write API bridge.",
+      "Sub-second AI response voice engine."
+    ],
+    features: [
+      { title: "Dental Emergency Triage", desc: "Differentiates routine checkups from urgent toothache calls and alerts on-call dentists immediately." },
+      { title: "Mindbody Schedule Maintenance", desc: "Allows callers to re-book or move hygiene appointments effortlessly without calling back during business hours." },
+      { title: "Patient Contact Sync", desc: "Verifies patient insurance coverage and personal details before finalizing booking." }
+    ]
+  }
+};
+
+export function generateStaticParams() {
+  return Object.keys(INTEGRATION_DATA).map((slug) => ({ slug }));
+}
+
+export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+  const data = INTEGRATION_DATA[params.slug];
+  if (!data) return {};
+
+  return {
+    title: `${data.name} | PyrexxAI`,
+    description: data.description,
+    alternates: {
+      canonical: `https://pyrexxai.com/integrations/${data.slug}`,
+    },
+    openGraph: {
+      title: `${data.name} | PyrexxAI`,
+      description: data.description,
+      images: [`https://pyrexxai.com/api/og?title=${encodeURIComponent(data.name)}`],
+    },
+  };
+}
+
+export default function IntegrationPSEOPage({ params }: { params: { slug: string } }) {
+  const data = INTEGRATION_DATA[params.slug];
+  if (!data) notFound();
+
+  const appSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: `PyrexxAI ${data.emrName} Integration`,
+    operatingSystem: "Cloud / Web",
+    applicationCategory: "HealthApplication",
+    description: data.description,
+    offers: {
+      "@type": "Offer",
+      price: "1500.00",
+      priceCurrency: "USD"
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+      <Navbar />
+      <Script id="pSEO-app-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }} />
+
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-6 max-w-5xl mx-auto text-center">
+        <div className="inline-flex items-center gap-2 bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 px-4 py-2 rounded-full text-brand-700 dark:text-brand-300 text-xs font-bold uppercase tracking-wider mb-8">
+          <Zap className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+          <span>{data.emrName} Native Integration</span>
+        </div>
+
+        <h1 className="text-4xl lg:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-tight">
+          {data.heroHeadline}
+        </h1>
+
+        <p className="text-lg lg:text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-3xl mx-auto leading-relaxed">
+          {data.description}
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a
+            href={CAL_LINK}
+            className="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full text-base font-bold shadow-cta transition-all flex items-center justify-center gap-2"
+          >
+            Deploy For {data.emrName} <ArrowRight className="w-5 h-5" />
+          </a>
+        </div>
+      </section>
+
+      {/* Benefits Breakdown */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-2xl lg:text-3xl font-bold text-center mb-12">
+            Why {data.category} Choose PyrexxAI for {data.emrName}
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-16">
+            <div className="bg-white dark:bg-gray-950 p-8 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm">
+              <h3 className="text-xl font-bold mb-6 text-brand-600 dark:text-brand-400">Core Integration Advantages</h3>
+              <ul className="space-y-4">
+                {data.benefits.map((benefit, i) => (
+                  <li key={i} className="flex items-start text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-3 shrink-0 mt-0.5" />
+                    <span>{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="bg-brand-900 text-white p-8 rounded-3xl border border-brand-800 flex flex-col justify-between">
+              <div>
+                <ShieldCheck className="w-10 h-10 text-emerald-400 mb-4" />
+                <h3 className="text-xl font-bold mb-2">100% HIPAA-Compliant Architecture</h3>
+                <p className="text-brand-100 text-sm leading-relaxed mb-6">
+                  Every interaction processed through our {data.emrName} API connection is fully encrypted at rest and in transit. We sign a Business Associate Agreement (BAA) before launch.
+                </p>
+              </div>
+              <div className="bg-brand-800/60 p-4 rounded-2xl border border-brand-700/50">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">Standard Launch SLA</span>
+                <p className="text-lg font-bold text-white mt-1">Live in 14 Days Guaranteed</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature Grid */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {data.features.map((feat, i) => (
+              <div key={i} className="bg-white dark:bg-gray-950 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                <h4 className="font-bold text-gray-900 dark:text-white text-base mb-2">{feat.title}</h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{feat.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -2305,36 +2636,6 @@ export default function WebsiteBuildingPage() {
 }
 </file>
 
-<file path="components/CalEmbed.tsx">
-"use client";
-
-import Cal, { getCalApi } from "@calcom/embed-react";
-import { useEffect } from "react";
-
-export default function CalEmbed() {
-  useEffect(() => {
-    (async function () {
-      const cal = await getCalApi();
-      cal("ui", { 
-        styles: { branding: { brandColor: "#2563EB" } }, 
-        hideEventTypeDetails: false, 
-        layout: "month_view" 
-      });
-    })();
-  }, []);
-
-  return (
-    <div className="w-full h-[650px] overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl bg-white dark:bg-[#0A0B0D]">
-      <Cal 
-        calLink="clifford-bulya/15min" 
-        style={{ width: "100%", height: "100%", overflow: "scroll" }}
-        config={{ theme: "auto" }}
-      />
-    </div>
-  );
-}
-</file>
-
 <file path="components/CookieBanner.tsx">
 "use client";
 
@@ -2969,6 +3270,85 @@ export default function robots(): MetadataRoute.Robots {
 }
 </file>
 
+<file path="components/CalEmbed.tsx">
+"use client";
+
+import React, { useState } from "react";
+import Cal, { getCalApi } from "@calcom/embed-react";
+import { Calendar, Play, Loader2, Lock } from "lucide-react";
+
+export default function CalEmbed() {
+  const [activated, setActivated] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleActivate = async () => {
+    setLoading(true);
+    try {
+      const cal = await getCalApi();
+      cal("ui", {
+        styles: { branding: { brandColor: "#2563EB" } },
+        hideEventTypeDetails: false,
+        layout: "month_view",
+      });
+      setActivated(true);
+    } catch (e) {
+      console.error("Cal.com initialization error:", e);
+      setActivated(true); // Fallback render
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="w-full h-[650px] overflow-hidden rounded-3xl border border-gray-200 dark:border-gray-800 shadow-2xl bg-white dark:bg-[#0A0B0D] relative flex flex-col justify-center items-center">
+      {!activated ? (
+        <div className="p-8 text-center max-w-md mx-auto space-y-6">
+          <div className="w-20 h-20 bg-brand-50 dark:bg-brand-900/30 rounded-3xl flex items-center justify-center mx-auto border border-brand-100 dark:border-brand-800/50 shadow-inner">
+            <Calendar className="w-10 h-10 text-brand-600 dark:text-brand-400" />
+          </div>
+
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Schedule Your Discovery Call
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              Select a time to evaluate your EMR workflow and see a live AI receptionist demonstration.
+            </p>
+          </div>
+
+          <button
+            onClick={handleActivate}
+            disabled={loading}
+            className="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 px-8 rounded-2xl shadow-cta transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-70"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" /> Initializing Calendar...
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5 fill-current" /> Load Live Calendar
+              </>
+            )}
+          </button>
+
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-400 pt-2">
+            <Lock className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Encrypted Booking Connection (Cal.com)</span>
+          </div>
+        </div>
+      ) : (
+        <Cal
+          calLink="clifford-bulya/15min"
+          style={{ width: "100%", height: "100%", overflow: "scroll" }}
+          config={{ theme: "auto" }}
+        />
+      )}
+    </div>
+  );
+}
+</file>
+
 <file path="components/CTA.tsx">
 import React from "react";
 import Link from "next/link";
@@ -3038,101 +3418,6 @@ export default function ContactTemplate({ name, email, clinic, practiceType, cal
         </Body>
       </Tailwind>
     </Html>
-  );
-}
-</file>
-
-<file path="components/ROICalculator.tsx">
-"use client";
-
-import React, { useState } from "react";
-import { CAL_LINK } from "@/lib/utils";
-
-export default function ROICalculator() {
-  const [calls, setCalls] = useState(200);
-  const [missedRate, setMissedRate] = useState(35);
-  const [ltv, setLtv] = useState(3000);
-  
-  const missedCalls = Math.round(calls * (missedRate / 100));
-  const monthlyRisk = missedCalls * ltv;
-  const annualRisk = monthlyRisk * 12;
-  
-  const pyrexxMonthlyCost = 1499;
-  const netMonthlyROI = monthlyRisk - pyrexxMonthlyCost;
-
-  const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
-
-  return (
-    <section id="roi" className="py-12 md:py-24 bg-white dark:bg-gray-950 transition-colors duration-300">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="bg-gradient-to-br from-brand-50 to-brand-100/50 dark:from-gray-900 dark:to-gray-800/50 rounded-3xl p-6 md:p-8 lg:p-12 border border-brand-100 dark:border-gray-700 shadow-sm">
-          <div className="text-center mb-6 md:mb-10">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-brand-900 dark:text-white mb-2 md:mb-4 tracking-tight">Calculate Your Lost Revenue</h2>
-            <p className="text-base md:text-lg text-brand-700/80 dark:text-gray-400">See exactly how much revenue walks out the door when calls go unanswered.</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
-            <div className="space-y-5 md:space-y-8 pt-4">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <label className="text-sm md:text-base font-semibold text-brand-900 dark:text-gray-200">Monthly Inbound Calls</label>
-                  <span className="font-bold text-brand-700 dark:text-brand-400 stat-number">{calls}</span>
-                </div>
-                <input type="range" min="50" max="2000" step="10" value={calls} onChange={(e) => setCalls(Number(e.target.value))} className="w-full h-2 bg-white dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600" aria-label="Monthly inbound calls slider" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <label className="text-sm md:text-base font-semibold text-brand-900 dark:text-gray-200">Missed Call Rate (%)</label>
-                  <span className="font-bold text-brand-700 dark:text-brand-400 stat-number">{missedRate}%</span>
-                </div>
-                <input type="range" min="10" max="70" step="1" value={missedRate} onChange={(e) => setMissedRate(Number(e.target.value))} className="w-full h-2 bg-white dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600" aria-label="Missed call rate slider" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <label className="text-sm md:text-base font-semibold text-brand-900 dark:text-gray-200">Avg. Patient Lifetime Value</label>
-                  <span className="font-bold text-brand-700 dark:text-brand-400 stat-number">${ltv}</span>
-                </div>
-                <input type="range" min="500" max="15000" step="100" value={ltv} onChange={(e) => setLtv(Number(e.target.value))} className="w-full h-2 bg-white dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600" aria-label="Patient lifetime value slider" />
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 md:p-8 shadow-card dark:shadow-none border border-gray-100 dark:border-gray-700 flex flex-col justify-center transition-colors">
-              <div className="space-y-4 md:space-y-6">
-                <div className="border-b border-gray-100 dark:border-gray-800 pb-3 md:pb-4 flex justify-between items-end">
-                  <div>
-                    <p className="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Missed Opportunities</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white stat-number">{missedCalls} <span className="text-sm text-gray-500 dark:text-gray-500 font-normal">calls/mo</span></p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Revenue at Risk</p>
-                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-500 stat-number">{formatCurrency(monthlyRisk)}</p>
-                  </div>
-                </div>
-                
-                <div className="bg-brand-50/50 dark:bg-brand-900/20 rounded-xl p-4 border border-brand-100 dark:border-brand-800/50">
-                  <p className="text-xs font-semibold text-brand-700 dark:text-brand-400 uppercase tracking-wide mb-1">Estimated Net ROI with PyrexxAI</p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-3xl md:text-4xl font-extrabold text-emerald-600 dark:text-emerald-500 stat-number">+{formatCurrency(netMonthlyROI)}</p>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 mb-1">/ month</span>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">*Based on standard $1,499/mo platform management fee.</p>
-                </div>
-              </div>
-              
-              <div className="mt-6 md:mt-8 space-y-3">
-                <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" className="block w-full bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 md:py-4 rounded-xl text-center font-bold transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-sm md:text-base">
-                  Stop Losing Revenue &rarr;
-                </a>
-                <a href="#how-it-works" className="block w-full px-6 py-3 rounded-xl text-center font-semibold text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors text-sm md:text-base">
-                  See how PyrexxAI works
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }
 </file>
@@ -3416,6 +3701,129 @@ export const metadata: Metadata = {
 
 export default function DashboardDemoPage() {
   return <DashboardClient />;
+}
+</file>
+
+<file path="components/ROICalculator.tsx">
+"use client";
+
+import React, { useState } from "react";
+import { CAL_LINK } from "@/lib/utils";
+
+export default function ROICalculator() {
+  const [calls, setCalls] = useState(200);
+  const [missedRate, setMissedRate] = useState(35);
+  const [ltv, setLtv] = useState(3000);
+  
+  const missedCalls = Math.round(calls * (missedRate / 100));
+  const monthlyRisk = missedCalls * ltv;
+  const pyrexxMonthlyCost = 1499;
+  const netMonthlyROI = monthlyRisk - pyrexxMonthlyCost;
+
+  const formatCurrency = (val: number) => 
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+
+  return (
+    <section id="roi" className="py-12 md:py-24 bg-white dark:bg-gray-950 transition-colors duration-300">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="bg-gradient-to-br from-brand-50 to-brand-100/50 dark:from-gray-900 dark:to-gray-800/50 rounded-3xl p-5 sm:p-8 lg:p-12 border border-brand-100 dark:border-gray-700 shadow-sm transition-colors">
+          <div className="text-center mb-6 md:mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-brand-900 dark:text-white mb-2 md:mb-4 tracking-tight">Calculate Your Lost Revenue</h2>
+            <p className="text-sm sm:text-base md:text-lg text-brand-700/80 dark:text-gray-400">See exactly how much revenue walks out the door when calls go unanswered.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
+            <div className="space-y-6 sm:space-y-8 pt-2">
+              <div>
+                <div className="flex justify-between mb-2 items-center">
+                  <label htmlFor="calls-slider" className="text-xs sm:text-sm font-semibold text-brand-900 dark:text-gray-200">Monthly Inbound Calls</label>
+                  <span className="font-bold text-brand-700 dark:text-brand-400 stat-number text-sm sm:text-base">{calls}</span>
+                </div>
+                <input 
+                  id="calls-slider"
+                  type="range" 
+                  min="50" 
+                  max="2000" 
+                  step="10" 
+                  value={calls} 
+                  onChange={(e) => setCalls(Number(e.target.value))} 
+                  className="w-full h-2.5 bg-white dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600" 
+                  aria-label="Monthly inbound calls slider" 
+                />
+              </div>
+              <div>
+                <div className="flex justify-between mb-2 items-center">
+                  <label htmlFor="missed-slider" className="text-xs sm:text-sm font-semibold text-brand-900 dark:text-gray-200">Missed Call Rate (%)</label>
+                  <span className="font-bold text-brand-700 dark:text-brand-400 stat-number text-sm sm:text-base">{missedRate}%</span>
+                </div>
+                <input 
+                  id="missed-slider"
+                  type="range" 
+                  min="10" 
+                  max="70" 
+                  step="1" 
+                  value={missedRate} 
+                  onChange={(e) => setMissedRate(Number(e.target.value))} 
+                  className="w-full h-2.5 bg-white dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600" 
+                  aria-label="Missed call rate slider" 
+                />
+              </div>
+              <div>
+                <div className="flex justify-between mb-2 items-center">
+                  <label htmlFor="ltv-slider" className="text-xs sm:text-sm font-semibold text-brand-900 dark:text-gray-200">Avg. Patient Lifetime Value</label>
+                  <span className="font-bold text-brand-700 dark:text-brand-400 stat-number text-sm sm:text-base">${ltv}</span>
+                </div>
+                <input 
+                  id="ltv-slider"
+                  type="range" 
+                  min="500" 
+                  max="15000" 
+                  step="100" 
+                  value={ltv} 
+                  onChange={(e) => setLtv(Number(e.target.value))} 
+                  className="w-full h-2.5 bg-white dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600" 
+                  aria-label="Patient lifetime value slider" 
+                />
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 sm:p-8 shadow-card dark:shadow-none border border-gray-100 dark:border-gray-700 flex flex-col justify-center transition-colors">
+              <div className="space-y-4 md:space-y-6">
+                <div className="border-b border-gray-100 dark:border-gray-800 pb-3 md:pb-4 flex justify-between items-end gap-2">
+                  <div>
+                    <p className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Missed Calls</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white stat-number">{missedCalls} <span className="text-xs text-gray-500 font-normal">/mo</span></p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Revenue at Risk</p>
+                    <p className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-500 stat-number">{formatCurrency(monthlyRisk)}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-brand-50/50 dark:bg-brand-900/20 rounded-xl p-4 border border-brand-100 dark:border-brand-800/50">
+                  <p className="text-[10px] sm:text-xs font-semibold text-brand-700 dark:text-brand-400 uppercase tracking-wide mb-1">Estimated Net Monthly ROI</p>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-emerald-600 dark:text-emerald-500 stat-number">+{formatCurrency(netMonthlyROI)}</p>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">/ month</span>
+                  </div>
+                  <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-2">*Based on standard $1,499/mo management retainer.</p>
+                </div>
+              </div>
+              
+              <div className="mt-6 space-y-2.5">
+                <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" className="block w-full bg-brand-600 hover:bg-brand-700 text-white px-6 py-3.5 rounded-xl text-center font-bold transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-sm">
+                  Stop Losing Revenue &rarr;
+                </a>
+                <a href="#how-it-works" className="block w-full px-6 py-2.5 rounded-xl text-center font-semibold text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors text-xs sm:text-sm">
+                  See how PyrexxAI works
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 </file>
 
@@ -3743,27 +4151,27 @@ export default function Offerings() {
 <file path="app/api/chat/route.ts">
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 const SYSTEM_PROMPT = `You are the PyrexxAI virtual assistant, an expert sales engineer for an AI voice receptionist agency. 
-Your goal is to answer questions about PyrexxAI concisely, professionally, and accurately, and ultimately guide the user to book a demo.
+Your goal is to answer questions about PyrexxAI concisely, professionally, and accurately, and guide the user to book a demo.
 
 KEY FACTS ABOUT PYREXXAI:
 - We deploy custom-trained AI voice receptionists for MedSpas, Dental Clinics, and Therapy Practices in the US.
 - Features: 24/7 inbound call handling, lead intake, direct EMR/EHR booking, missed-call text-back.
-- Integration: We integrate natively with Jane App, Mindbody, eClinicalWorks, and other major EMRs.
+- Integration: We integrate natively with Jane App, Mindbody, eClinicalWorks, Boulevard, and other major EMRs.
 - Timeline: We go live in exactly 14 days from the kickoff call.
 - Compliance: 100% HIPAA compliant. We provide a signed Business Associate Agreement (BAA) to all clients.
 - Pricing: $1,500 one-time setup fee, and $1,000/month for platform management.
-- Concurrent Calls: The AI can handle an unlimited number of concurrent calls. No one is ever put on hold.
-- Call Routing: We can route emergency calls to an on-call doctor.
+- Concurrent Calls: The AI handles unlimited concurrent calls. Zero hold times.
 
-CRITICAL FORMATTING INSTRUCTIONS:
-- You MUST use markdown links for any URLs. NEVER write out a raw link.
-- For demos, ALWAYS use: [book a free demo](/book-demo)
-- For our contact form, ALWAYS use: [contact form](/contact)
-- For our HIPAA compliance page, ALWAYS use: [HIPAA compliance page](/hipaa-compliance)
-- For the EMR list or solution details, ALWAYS use: [solutions page](/ai-receptionist)
-- Bold important metrics and key features for high scannability.
-- Keep answers ultra-concise (under 3 sentences).`;
+FORMATTING RULES:
+- Use markdown links for URLs.
+- Book demo: [book a free demo](/book-demo)
+- Contact form: [contact form](/contact)
+- HIPAA compliance: [HIPAA compliance page](/hipaa-compliance)
+- Solutions: [solutions page](/ai-receptionist)
+- Keep responses ultra-concise (under 3 sentences).`;
 
 export async function POST(req: Request) {
   try {
@@ -3771,9 +4179,8 @@ export async function POST(req: Request) {
     const model = process.env.OPENROUTER_MODEL || "arcee-ai/trinity-large-preview:free";
 
     if (!apiKey) {
-      console.error("CRITICAL ERROR: OPENROUTER_API_KEY is missing from environment variables.");
       return NextResponse.json(
-        { content: "System Configuration Error: The OpenRouter API key is missing on the server. Please add OPENROUTER_API_KEY to your environment." },
+        { content: "System Error: OpenRouter API key missing. Please check server configuration." },
         { status: 500 }
       );
     }
@@ -3790,12 +4197,10 @@ export async function POST(req: Request) {
 
     const payloadMessages = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...conversationHistory
+      ...conversationHistory,
     ];
 
-    console.log(`[PyrexxAI] Routing prompt to OpenRouter model: ${model}`);
-
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -3807,373 +4212,76 @@ export async function POST(req: Request) {
         model: model,
         messages: payloadMessages,
         temperature: 0.7,
-        max_tokens: 1000,
+        max_tokens: 800,
+        stream: true,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`OpenRouter API error status: ${response.status}`, errorText);
-      throw new Error(`OpenRouter API error (${response.status}): ${errorText}`);
+    if (!openRouterRes.ok) {
+      const errorText = await openRouterRes.text();
+      throw new Error(`OpenRouter status ${openRouterRes.status}: ${errorText}`);
     }
 
-    const data = await response.json();
-    const reply = data.choices[0].message.content;
+    // Stream the response directly back to the client using TransformStream
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
 
-    return NextResponse.json({ content: reply });
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = openRouterRes.body?.getReader();
+        if (!reader) {
+          controller.close();
+          return;
+        }
+
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith(":")) continue;
+            if (trimmed === "data: [DONE]") {
+              controller.close();
+              return;
+            }
+
+            if (trimmed.startsWith("data: ")) {
+              try {
+                const parsed = JSON.parse(trimmed.slice(6));
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) {
+                  controller.enqueue(encoder.encode(content));
+                }
+              } catch (e) {
+                // Ignore parse errors on chunk boundaries
+              }
+            }
+          }
+        }
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+      },
+    });
   } catch (error) {
-    console.error("OpenRouter Integration Error:", error);
+    console.error("OpenRouter Stream Error:", error);
     return NextResponse.json(
-      { content: "I'm currently experiencing high volume. Please book a demo or use our contact form to speak with our engineering team!" },
+      { content: "I'm having trouble connecting to the network right now. Please [book a free demo](/book-demo) directly!" },
       { status: 500 }
     );
   }
-}
-</file>
-
-<file path="app/globals.css">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Custom Base Styles */
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 100px;
-}
-
-body {
-  overflow-x: hidden;
-  font-feature-settings: "cv11", "ss01";
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-number {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-}
-
-/* Waveform animation for hero mockup */
-@keyframes wave {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
-}
-
-.wave-bar {
-  display: inline-block;
-  width: 3px;
-  border-radius: 2px;
-  background: currentColor;
-  animation: wave 1s ease-in-out infinite;
-  transform-origin: bottom;
-}
-
-.wave-bar:nth-child(1) { animation-delay: 0s; height: 12px; }
-.wave-bar:nth-child(2) { animation-delay: 0.1s; height: 20px; }
-.wave-bar:nth-child(3) { animation-delay: 0.2s; height: 28px; }
-.wave-bar:nth-child(4) { animation-delay: 0.3s; height: 16px; }
-.wave-bar:nth-child(5) { animation-delay: 0.4s; height: 24px; }
-.wave-bar:nth-child(6) { animation-delay: 0.5s; height: 12px; }
-.wave-bar:nth-child(7) { animation-delay: 0.25s; height: 18px; }
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wave-bar { 
-    animation: none; 
-    transform: none; 
-  }
-  .animate-pulse-glow {
-    animation: none;
-    box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
-  }
-}
-</file>
-
-<file path="components/AIAssistant.tsx">
-"use client";
-
-import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, Bot } from "lucide-react";
-import Link from "next/link";
-import { CAL_LINK } from "@/lib/utils";
-
-type Message = {
-  id: string;
-  role: "ai" | "user";
-  content: string;
-};
-
-const defaultMessage: Message = {
-  id: "1",
-  role: "ai",
-  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant. Ask me anything about our EMR integrations, HIPAA compliance, or pricing setup!",
-};
-
-const SUGGESTION_CHIPS = [
-  { label: "EMR Integrations", query: "What EMR systems does the AI integrate with?" },
-  { label: "HIPAA Compliance", query: "Is this voice AI fully HIPAA compliant?" },
-  { label: "Pricing Setup", query: "How much does PyrexxAI cost?" },
-];
-
-export default function AIAssistant() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [mounted, setMounted] = useState(false);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-    const savedMessages = sessionStorage.getItem("pyrexxai-chat-history");
-    if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
-    } else {
-      setMessages([defaultMessage]);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      sessionStorage.setItem("pyrexxai-chat-history", JSON.stringify(messages));
-    }
-  }, [messages, mounted]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    if (isOpen) scrollToBottom();
-  }, [messages, isOpen, isTyping]);
-
-  const renderMessageContent = (text: string, role: "ai" | "user") => {
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    const boldRegex = /\*\*([^*]+)\*\*/g;
-    
-    let processedText = text.replace(boldRegex, "<strong>$1</strong>");
-
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = linkRegex.exec(processedText)) !== null) {
-      const [fullMatch, linkText, linkUrl] = match;
-      const index = match.index;
-
-      if (index > lastIndex) {
-        parts.push(
-          <span 
-            key={`text-${index}`} 
-            dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex, index) }} 
-          />
-        );
-      }
-
-      const isExternal = linkUrl.startsWith("http") || linkUrl.startsWith("https");
-      const linkClass = role === "user" 
-        ? "text-white underline font-bold hover:text-brand-100" 
-        : "text-brand-600 dark:text-brand-400 underline font-bold hover:text-brand-700 dark:hover:text-brand-300";
-
-      if (isExternal) {
-        parts.push(
-          <a key={`link-${index}`} href={linkUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
-            {linkText}
-          </a>
-        );
-      } else {
-        parts.push(
-          <Link key={`link-${index}`} href={linkUrl} onClick={() => setIsOpen(false)} className={linkClass}>
-            {linkText}
-          </Link>
-        );
-      }
-
-      lastIndex = linkRegex.lastIndex;
-    }
-
-    if (lastIndex < processedText.length) {
-      parts.push(
-        <span 
-          key="text-end" 
-          dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex) }} 
-        />
-      );
-    }
-
-    return parts.length > 0 ? parts : <span dangerouslySetInnerHTML={{ __html: processedText }} />;
-  };
-
-  const executeSendMessage = async (userQuery: string) => {
-    const newUserMsg: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: userQuery,
-    };
-
-    const updatedMessages = [...messages, newUserMsg];
-    setMessages(updatedMessages);
-    setIsTyping(true);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }),
-      });
-
-      const data = await res.json();
-      
-      const newAIMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "ai",
-        content: data.content,
-      };
-      setMessages((prev) => [...prev, newAIMsg]);
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "ai",
-          content: "I'm having trouble connecting to the server. Please [book a free demo](/book-demo) to speak with our team!",
-        },
-      ]);
-    } finally {
-      setIsTyping(false);
-    }
-  };
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-    const query = inputValue;
-    setInputValue("");
-    executeSendMessage(query);
-  };
-
-  if (!mounted) return null;
-
-  return (
-    <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label="PyrexxAI Virtual Assistant"
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="mb-4 w-[calc(100vw-3rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-8rem)] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-          >
-            <div className="bg-brand-600 text-white px-5 py-4 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-sm">PyrexxAI Assistant</h3>
-                  <div className="flex items-center space-x-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span className="text-xs text-brand-100">Live AI Agent</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-white/80 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-md p-1"
-                aria-label="Close chat window"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50 dark:bg-gray-900/50">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "bg-brand-600 text-white rounded-br-none" : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-bl-none shadow-sm"}`}>
-                    {renderMessageContent(msg.content, msg.role)}
-                  </div>
-                </div>
-              ))}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-bl-none px-4 py-4 shadow-sm flex items-center space-x-1.5">
-                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "0ms" }}></span>
-                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "150ms" }}></span>
-                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "300ms" }}></span>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {!isTyping && (
-              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 flex flex-wrap gap-2 border-t border-gray-100 dark:border-gray-800">
-                {SUGGESTION_CHIPS.map((chip, i) => (
-                  <button
-                    key={i}
-                    onClick={() => executeSendMessage(chip.query)}
-                    className="text-xs bg-white hover:bg-brand-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-white border border-gray-200 dark:border-gray-700 rounded-full px-3 py-1.5 font-medium transition-all focus-visible:outline-none"
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <form onSubmit={handleFormSubmit} className="p-4 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800">
-              <div className="relative flex items-center">
-                <label htmlFor="chat-input" className="sr-only">Type your message to the AI assistant</label>
-                <input
-                  id="chat-input"
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask a question..."
-                  className="w-full bg-gray-100 dark:bg-gray-900 border-none text-gray-900 dark:text-white text-sm rounded-full pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                />
-                <button
-                  type="submit"
-                  disabled={!inputValue.trim()}
-                  className="absolute right-2 w-8 h-8 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 dark:disabled:bg-gray-700 text-white rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
-                  aria-label="Send message"
-                >
-                  <Send className="w-4 h-4 ml-0.5" />
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950 relative"
-        aria-label={isOpen ? "Close AI Assistant" : "Open AI Assistant"}
-        aria-expanded={isOpen}
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
-        {!isOpen && (
-          <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white dark:border-gray-950 rounded-full"></span>
-        )}
-      </button>
-    </div>
-  );
 }
 </file>
 
@@ -4187,7 +4295,7 @@ const nextConfig = {
     remotePatterns: [], 
   },
   compress: true,
-  // Next.js 14 specific config to bypass Webpack for React Email
+  // Bypass Webpack bundling for React Email & Heavy Server Utilities
   experimental: {
     serverComponentsExternalPackages: [
       '@react-email/components',
@@ -4236,7 +4344,7 @@ import { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://pyrexxai.com";
 
-  return [
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -4310,6 +4418,445 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
   ];
+
+  // Programmatic pSEO routes
+  const pseoSlugs = [
+    "jane-app-medspa",
+    "boulevard-aesthetics",
+    "mindbody-dental"
+  ];
+
+  const pseoPages: MetadataRoute.Sitemap = pseoSlugs.map((slug) => ({
+    url: `${baseUrl}/integrations/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.85,
+  }));
+
+  return [...staticPages, ...pseoPages];
+}
+</file>
+
+<file path="app/globals.css">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Base Styles */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+
+body {
+  overflow-x: hidden;
+  font-feature-settings: "cv11", "ss01";
+  font-variant-numeric: tabular-nums;
+  /* Smooth, non-jarring global theme color interpolation */
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Subtle background dimming layer during theme switching */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.05);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 9999;
+}
+
+.theme-switching body::before {
+  opacity: 1;
+}
+
+.stat-number {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+/* Waveform animation for hero mockup */
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.wave-bar {
+  display: inline-block;
+  width: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  animation: wave 1s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+.wave-bar:nth-child(1) { animation-delay: 0s; height: 12px; }
+.wave-bar:nth-child(2) { animation-delay: 0.1s; height: 20px; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; height: 28px; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; height: 16px; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; height: 24px; }
+.wave-bar:nth-child(6) { animation-delay: 0.5s; height: 12px; }
+.wave-bar:nth-child(7) { animation-delay: 0.25s; height: 18px; }
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Touch-optimized Range Sliders for Mobile */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 22px;
+  width: 22px;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+  margin-top: -7px;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+  background: #1d4ed8;
+}
+
+input[type="range"]::-moz-range-thumb {
+  height: 22px;
+  width: 22px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: none;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-bar { 
+    animation: none; 
+    transform: none; 
+  }
+  .animate-pulse-glow {
+    animation: none;
+    box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
+  }
+  body {
+    transition: none !important;
+  }
+}
+</file>
+
+<file path="components/AIAssistant.tsx">
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageSquare, X, Send, Bot } from "lucide-react";
+import Link from "next/link";
+
+type Message = {
+  id: string;
+  role: "ai" | "user";
+  content: string;
+};
+
+const defaultMessage: Message = {
+  id: "1",
+  role: "ai",
+  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant. Ask me anything about our Services",
+};
+
+const SUGGESTION_CHIPS = [
+  { label: "EMR Integrations", query: "What EMR systems does the AI integrate with?" },
+  { label: "HIPAA Compliance", query: "Is this voice AI fully HIPAA compliant?" },
+  { label: "Pricing Setup", query: "How much does PyrexxAI cost?" },
+];
+
+export default function AIAssistant() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [mounted, setMounted] = useState(false);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    const savedMessages = sessionStorage.getItem("pyrexxai-chat-history");
+    if (savedMessages) {
+      try {
+        setMessages(JSON.parse(savedMessages));
+      } catch (e) {
+        setMessages([defaultMessage]);
+      }
+    } else {
+      setMessages([defaultMessage]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mounted && messages.length > 0) {
+      sessionStorage.setItem("pyrexxai-chat-history", JSON.stringify(messages));
+    }
+  }, [messages, mounted]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (isOpen) scrollToBottom();
+  }, [messages, isOpen, isTyping]);
+
+  const renderMessageContent = (text: string, role: "ai" | "user") => {
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const boldRegex = /\*\*([^*]+)\*\*/g;
+    
+    const processedText = text.replace(boldRegex, "<strong>$1</strong>");
+
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = linkRegex.exec(processedText)) !== null) {
+      const [fullMatch, linkText, linkUrl] = match;
+      const index = match.index;
+
+      if (index > lastIndex) {
+        parts.push(
+          <span 
+            key={`text-${index}`} 
+            dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex, index) }} 
+          />
+        );
+      }
+
+      const isExternal = linkUrl.startsWith("http") || linkUrl.startsWith("https");
+      const linkClass = role === "user" 
+        ? "text-white underline font-bold hover:text-brand-100" 
+        : "text-brand-600 dark:text-brand-400 underline font-bold hover:text-brand-700 dark:hover:text-brand-300";
+
+      if (isExternal) {
+        parts.push(
+          <a key={`link-${index}`} href={linkUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+            {linkText}
+          </a>
+        );
+      } else {
+        parts.push(
+          <Link key={`link-${index}`} href={linkUrl} onClick={() => setIsOpen(false)} className={linkClass}>
+            {linkText}
+          </Link>
+        );
+      }
+
+      lastIndex = linkRegex.lastIndex;
+    }
+
+    if (lastIndex < processedText.length) {
+      parts.push(
+        <span 
+          key="text-end" 
+          dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex) }} 
+        />
+      );
+    }
+
+    return parts.length > 0 ? parts : <span dangerouslySetInnerHTML={{ __html: processedText }} />;
+  };
+
+  const executeSendMessage = async (userQuery: string) => {
+    const newUserMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: userQuery,
+    };
+
+    const updatedMessages = [...messages, newUserMsg];
+    setMessages(updatedMessages);
+    setIsTyping(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: updatedMessages }),
+      });
+
+      if (!res.ok || !res.body) {
+        throw new Error("API streaming error");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let streamText = "";
+
+      const aiMsgId = (Date.now() + 1).toString();
+      setMessages((prev) => [...prev, { id: aiMsgId, role: "ai", content: "" }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        streamText += chunk;
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMsgId ? { ...msg, content: streamText } : msg
+          )
+        );
+      }
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "ai",
+          content: "I'm having trouble connecting to the server. Please [book a free demo](/book-demo) to speak with our team!",
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    const query = inputValue;
+    setInputValue("");
+    executeSendMessage(query);
+  };
+
+  if (!mounted) return null;
+
+  return (
+    <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[100] flex flex-col items-end pointer-events-none">
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="pyrexxai-chat-window"
+            role="dialog"
+            aria-modal="true"
+            aria-label="PyrexxAI Virtual Assistant"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="pointer-events-auto mb-4 w-[calc(100vw-2rem)] sm:w-[380px] h-[500px] sm:h-[520px] max-h-[calc(100vh-6rem)] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-colors"
+          >
+            <div className="bg-brand-600 text-white px-4 sm:px-5 py-3.5 sm:py-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm">PyrexxAI Assistant</h3>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="text-xs text-brand-100">Live AI Agent</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-white/80 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-md p-1"
+                aria-label="Close chat window"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gray-50 dark:bg-gray-900/50">
+              {messages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed ${msg.role === "user" ? "bg-brand-600 text-white rounded-br-none" : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-bl-none shadow-sm"}`}>
+                    {renderMessageContent(msg.content, msg.role)}
+                  </div>
+                </div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-bl-none px-4 py-3.5 shadow-sm flex items-center space-x-1.5">
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "0ms" }}></span>
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "150ms" }}></span>
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "300ms" }}></span>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {!isTyping && (
+              <div className="px-3.5 py-2 bg-gray-50 dark:bg-gray-900/50 flex flex-wrap gap-1.5 border-t border-gray-100 dark:border-gray-800 shrink-0">
+                {SUGGESTION_CHIPS.map((chip, i) => (
+                  <button
+                    key={i}
+                    onClick={() => executeSendMessage(chip.query)}
+                    className="text-[11px] bg-white hover:bg-brand-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-white border border-gray-200 dark:border-gray-700 rounded-full px-2.5 py-1 font-medium transition-all focus-visible:outline-none"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <form onSubmit={handleFormSubmit} className="p-3.5 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 shrink-0">
+              <div className="relative flex items-center">
+                <label htmlFor="chat-input" className="sr-only">Type your message to the AI assistant</label>
+                <input
+                  id="chat-input"
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Ask a question..."
+                  className="w-full bg-gray-100 dark:bg-gray-900 border-none text-gray-900 dark:text-white text-xs sm:text-sm rounded-full pl-4 pr-11 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim()}
+                  className="absolute right-1.5 w-7 h-7 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 dark:disabled:bg-gray-700 text-white rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                  aria-label="Send message"
+                >
+                  <Send className="w-3.5 h-3.5 ml-0.5" />
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="pointer-events-auto w-12 h-12 sm:w-14 sm:h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 relative"
+        aria-label={isOpen ? "Close AI Assistant" : "Open AI Assistant"}
+        aria-expanded={isOpen}
+      >
+        {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />}
+        {!isOpen && (
+          <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white dark:border-gray-950 rounded-full"></span>
+        )}
+      </button>
+    </div>
+  );
 }
 </file>
 
@@ -4404,336 +4951,6 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  );
-}
-</file>
-
-<file path="components/Hero.tsx">
-"use client";
-
-import React, { useState } from "react";
-import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import { 
-  Shield, Server, Activity, Users, ArrowRight, 
-  LayoutDashboard, BarChart3, User, PhoneCall, 
-  CalendarCheck, Clock, CheckCircle2, ChevronRight, Bot 
-} from "lucide-react";
-import { CAL_LINK, getFadeUpVariants, getStaggerContainer } from "@/lib/utils";
-
-type TabState = "dashboard" | "analytics" | "profile";
-
-export default function Hero() {
-  const prefersReducedMotion = useReducedMotion();
-  const fadeUp = getFadeUpVariants(prefersReducedMotion);
-  const stagger = getStaggerContainer(prefersReducedMotion);
-  const [activeTab, setActiveTab] = useState<TabState>("dashboard");
-
-  const tabContent = {
-    dashboard: {
-      title: "Live Operations",
-      desc: "Monitor your AI receptionist in real-time from anywhere. Watch as it answers calls, writes directly to your EMR, and secures missed opportunities without human intervention."
-    },
-    analytics: {
-      title: "Growth Metrics",
-      desc: "Track your patient acquisition costs, deflection rates, and net ROI effortlessly. Complete transparency into how your AI agent is compounding your clinic's revenue."
-    },
-    profile: {
-      title: "Clinic Configuration",
-      desc: "Update your business hours, securely manage your EMR API connections, and review your HIPAA Business Associate Agreement directly from your mobile device."
-    }
-  };
-
-  return (
-    <section className="relative pt-32 pb-16 overflow-hidden dark:bg-gray-950 transition-colors duration-300">
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl -z-10 pointer-events-none">
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-brand-100/40 dark:bg-brand-900/20 blur-[100px] rounded-full" />
-        <div className="absolute top-40 left-1/4 w-[600px] h-[300px] bg-accent-50/40 dark:bg-accent-900/20 blur-[100px] rounded-full" />
-      </div>
-
-      <div className="max-w-7xl mx-auto text-center">
-        <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-4xl mx-auto space-y-8 mb-12 px-6">
-          
-          <motion.h1 variants={fadeUp} className="text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold tracking-tight text-gray-900 dark:text-white leading-[1.1]">
-            Your Clinic's Front Desk.<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent-600 dark:from-brand-400 dark:to-accent-400">
-              Reimagined with AI.
-            </span>
-          </motion.h1>
-          
-          <motion.p variants={fadeUp} className="text-lg lg:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            38% of patient calls go unanswered. PyrexxAI deploys custom voice AI that answers every call 24/7, books directly into your schedule, and qualifies every lead.
-          </motion.p>
-          
-          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 pt-2">
-            <Link href={CAL_LINK} className="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full text-base font-semibold transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950">
-              Book a Free Demo &rarr;
-            </Link>
-            <Link href="/#how-it-works" className="w-full sm:w-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200 px-8 py-4 rounded-full text-base font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950">
-              See How It Works
-            </Link>
-          </motion.div>
-        </motion.div>
-
-        {/* Horizontally Scrollable Mobile Pill Menu */}
-        <motion.div 
-          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="w-full overflow-x-auto scrollbar-hide pb-4 mb-8 flex lg:justify-center px-6 lg:px-0"
-        >
-          <div className="flex gap-2 bg-gray-100/80 dark:bg-gray-900/50 p-1.5 rounded-full border border-gray-200/50 dark:border-gray-800/80 shadow-inner w-max shrink-0">
-            <Link href="/hipaa-compliance" className="px-4 py-1.5 rounded-full text-xs font-semibold bg-brand-600 text-white shadow-sm hover:bg-brand-700 transition-colors flex items-center gap-1.5 shrink-0">
-              <Shield className="w-3.5 h-3.5" /> HIPAA Compliant
-            </Link>
-            <span className="px-4 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-1.5 shrink-0">
-              <Server className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" /> Live in 14 Days
-            </span>
-            <span className="px-4 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-1.5 shrink-0">
-              <Activity className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" /> 99.9% Uptime
-            </span>
-            <span className="px-4 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-1.5 shrink-0">
-              <Users className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" /> 24/7 Coverage
-            </span>
-          </div>
-        </motion.div>
-
-        {/* 3-Column Interactive Widget Section */}
-        <motion.div 
-          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12 lg:gap-8 px-6 mt-16"
-        >
-          {/* Left Column: Navigation Tabs */}
-          <div className="flex lg:flex-col gap-3 w-full lg:w-56 overflow-x-auto scrollbar-hide pb-2 lg:pb-0 shrink-0 lg:mt-10">
-            {[
-              { id: "dashboard", icon: LayoutDashboard, label: "Live Dashboard" },
-              { id: "analytics", icon: BarChart3, label: "Performance" },
-              { id: "profile", icon: User, label: "Clinic Profile" }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabState)}
-                  className={`flex items-center gap-3 px-5 py-4 rounded-2xl text-sm font-semibold transition-all shrink-0 lg:w-full ${
-                    isActive 
-                      ? "bg-brand-600 text-white shadow-md shadow-brand-500/20" 
-                      : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Center Column: The Mobile Widget */}
-          <motion.div 
-            animate={prefersReducedMotion ? {} : { y: [0, -8, 0] }} 
-            transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-            className="shrink-0 relative w-[300px] h-[600px] bg-gray-900 dark:bg-black rounded-[3rem] p-2.5 shadow-2xl border border-gray-800"
-          >
-            {/* The Inner Screen */}
-            <div className="w-full h-full bg-gray-50 dark:bg-[#0A0B0D] rounded-[2.5rem] overflow-hidden relative flex flex-col border border-gray-800/50">
-              
-              {/* iPhone Notch */}
-              <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
-                <div className="w-32 h-5 bg-gray-900 dark:bg-black rounded-b-xl"></div>
-              </div>
-              
-              {/* Top Status Bar */}
-              <div className="h-10 w-full px-6 flex justify-between items-end pb-1 text-[10px] font-medium text-gray-500 z-20">
-                <span>9:41</span>
-                <div className="flex gap-1 items-center">
-                  <div className="w-3 h-2.5 bg-gray-500 rounded-sm"></div>
-                  <div className="w-4 h-2.5 bg-gray-500 rounded-sm"></div>
-                </div>
-              </div>
-
-              {/* Screen Content Wrapper */}
-              <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pb-24 relative">
-                <AnimatePresence mode="wait">
-                  
-                  {/* Dashboard View */}
-                  {activeTab === "dashboard" && (
-                    <motion.div key="dashboard" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} transition={{duration: 0.2}} className="space-y-4 pt-2">
-                      <div className="flex justify-between items-center mb-6">
-                        <div>
-                          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
-                          <p className="text-xs text-gray-500">Welcome, Elite MedSpa</p>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-brand-600 dark:text-brand-400">
-                          <Bot className="w-4 h-4" />
-                        </div>
-                      </div>
-
-                      {/* Active Call Card */}
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-brand-100 dark:border-brand-800">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase">Live Call</span>
-                          </div>
-                          <span className="text-xs font-semibold text-gray-500 tabular-nums">01:24</span>
-                        </div>
-                        <div className="flex gap-3 items-center">
-                          <div className="w-10 h-10 bg-brand-50 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                            <PhoneCall className="w-4 h-4 text-brand-600 dark:text-brand-400" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-gray-900 dark:text-white">+1 (415) ***-8291</p>
-                            <p className="text-xs text-gray-500">Intent: Booking Appt</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-6 mb-3">Recent Activity</h3>
-                      <div className="space-y-2">
-                        {[
-                          { name: "Sarah J.", intent: "Consultation", time: "10m ago" },
-                          { name: "Mike T.", intent: "Reschedule", time: "1h ago" },
-                          { name: "Anna L.", intent: "Pricing Info", time: "3h ago" },
-                        ].map((call, i) => (
-                          <div key={i} className="bg-white dark:bg-gray-900 p-3 rounded-xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                                <CheckCircle2 className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <p className="text-xs font-bold text-gray-900 dark:text-white">{call.name}</p>
-                                <p className="text-[10px] text-gray-500">{call.intent}</p>
-                              </div>
-                            </div>
-                            <span className="text-[10px] text-gray-400">{call.time}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Analytics View */}
-                  {activeTab === "analytics" && (
-                    <motion.div key="analytics" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} transition={{duration: 0.2}} className="space-y-4 pt-2">
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Performance</h2>
-                      
-                      <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                          <p className="text-[10px] text-gray-500 uppercase font-semibold">Total Calls</p>
-                          <p className="text-xl font-bold text-gray-900 dark:text-white">842</p>
-                        </div>
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                          <p className="text-[10px] text-gray-500 uppercase font-semibold">AI Bookings</p>
-                          <p className="text-xl font-bold text-brand-600 dark:text-brand-400">312</p>
-                        </div>
-                      </div>
-
-                      <div className="bg-brand-600 p-5 rounded-2xl text-white">
-                        <p className="text-xs text-brand-200 uppercase font-semibold mb-1">Net ROI Generated</p>
-                        <p className="text-2xl font-bold">$18,400</p>
-                      </div>
-
-                      <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 mt-4 space-y-4">
-                        <div>
-                          <div className="flex justify-between text-xs font-semibold mb-1">
-                            <span className="text-gray-600 dark:text-gray-300">Resolution Rate</span>
-                            <span className="text-emerald-500">94%</span>
-                          </div>
-                          <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-emerald-500 h-full w-[94%] rounded-full"></div>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-xs font-semibold mb-1">
-                            <span className="text-gray-600 dark:text-gray-300">EMR Sync Accuracy</span>
-                            <span className="text-brand-500">100%</span>
-                          </div>
-                          <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-brand-500 h-full w-full rounded-full"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Profile View */}
-                  {activeTab === "profile" && (
-                    <motion.div key="profile" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} transition={{duration: 0.2}} className="space-y-4 pt-2">
-                      <div className="flex flex-col items-center justify-center py-6">
-                        <div className="w-20 h-20 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center text-2xl font-bold text-gray-500 mb-3 border-4 border-white dark:border-gray-950 shadow-sm">
-                          EA
-                        </div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Elite Aesthetics</h2>
-                        <span className="text-xs text-emerald-500 font-semibold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded mt-2">Active Plan</span>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">EMR Integration</span>
-                          <span className="text-xs bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 px-2 py-1 rounded font-bold">Jane App</span>
-                        </div>
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">HIPAA BAA</span>
-                          <span className="text-xs text-gray-500">Signed May 2026</span>
-                        </div>
-                        <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Prompt Settings</span>
-                          <ChevronRight className="w-4 h-4 text-gray-400" />
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                </AnimatePresence>
-              </div>
-
-              {/* App Bottom Navigation */}
-              <div className="absolute bottom-0 w-full h-20 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 flex justify-around items-center px-4 pb-4 pt-2 z-30">
-                <button onClick={() => setActiveTab("dashboard")} className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>
-                  <LayoutDashboard className="w-5 h-5" />
-                  <span className="text-[10px] font-semibold">Home</span>
-                </button>
-                <button onClick={() => setActiveTab("analytics")} className={`flex flex-col items-center gap-1 ${activeTab === 'analytics' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>
-                  <BarChart3 className="w-5 h-5" />
-                  <span className="text-[10px] font-semibold">Metrics</span>
-                </button>
-                <button onClick={() => setActiveTab("profile")} className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>
-                  <User className="w-5 h-5" />
-                  <span className="text-[10px] font-semibold">Profile</span>
-                </button>
-              </div>
-
-            </div>
-          </motion.div>
-
-          {/* Right Column: Context & CTA */}
-          <div className="flex-1 text-center lg:text-left w-full max-w-sm lg:mt-10">
-            <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-              {tabContent[activeTab].title}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed text-sm md:text-base">
-              {tabContent[activeTab].desc}
-            </p>
-            <div className="space-y-4">
-              <Link 
-                href={CAL_LINK} 
-                className="w-full sm:w-auto inline-flex items-center justify-center bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl text-sm font-bold transition-all shadow-cta hover:shadow-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-              >
-                Request Setup <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-              <p className="text-xs text-gray-500 dark:text-gray-500 font-medium">
-                Or create a free account to explore the dashboard yourself.
-              </p>
-            </div>
-          </div>
-
-        </motion.div>
-      </div>
-    </section>
   );
 }
 </file>
@@ -4881,8 +5098,8 @@ export default function Navbar() {
   const isCompanyActive = pathname.startsWith("/about") || pathname.startsWith("/careers");
 
   return (
-    <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl z-50 transition-all duration-300">
-      <nav className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20 rounded-full px-4 sm:px-6 h-16 flex items-center justify-between">
+    <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)] max-w-7xl z-50 transition-all duration-300">
+      <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20 rounded-full px-4 sm:px-6 h-16 flex items-center justify-between transition-colors duration-300">
         
         {/* Left: Brand Logo & Name */}
         <Link href="/" className="flex items-center space-x-2.5 shrink-0 group" aria-label="PyrexxAI Home" onClick={() => setIsOpen(false)}>
@@ -4928,7 +5145,7 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
                 >
                   <div className="flex flex-col">
                     <Link href="/ai-receptionist" onClick={() => setDesktopServicesOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">AI Receptionist</Link>
@@ -4966,7 +5183,7 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
                 >
                   <div className="flex flex-col">
                     <Link href="/about" onClick={() => setDesktopCompanyOpen(false)} className="px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-white transition-colors">About Us</Link>
@@ -4983,10 +5200,8 @@ export default function Navbar() {
         {/* Right: Controls & Portal Actions */}
         <div className="hidden md:flex items-center space-x-3">
           <ThemeToggle />
-          
           <div className="h-4 w-[1px] bg-gray-200 dark:bg-slate-800 my-auto" />
           
-          {/* Calendar Icon -> Internal /book-demo */}
           <Link
             href={CAL_LINK}
             aria-label="Book a Discovery Call"
@@ -4995,7 +5210,6 @@ export default function Navbar() {
             <Calendar className="w-5 h-5" />
           </Link>
 
-          {/* Dashboard Button -> Outbound app.pyrexxai.com */}
           <a
             href="https://app.pyrexxai.com"
             target="_blank"
@@ -5010,7 +5224,7 @@ export default function Navbar() {
         <div className="flex items-center space-x-2 lg:hidden">
           <ThemeToggle />
           <button 
-            className="p-2 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-md"
+            className="p-2.5 text-gray-600 dark:text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg active:bg-gray-100 dark:active:bg-slate-800"
             onClick={() => setIsOpen(!isOpen)}
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -5024,16 +5238,16 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-24 left-4 right-4 bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border border-white/80 dark:border-white/10 shadow-2xl rounded-3xl p-6 flex flex-col space-y-4 lg:hidden z-40 max-h-[calc(100vh-8rem)] overflow-y-auto"
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed top-24 left-3 right-3 sm:left-4 sm:right-4 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-white/80 dark:border-white/10 shadow-2xl rounded-3xl p-5 flex flex-col space-y-3 lg:hidden z-40 max-h-[85vh] overflow-y-auto scrollbar-hide"
           >
             <div className="py-2 border-b border-gray-100 dark:border-slate-800">
               <button 
                 onClick={() => setMobileServicesOpen(!mobileServicesOpen)} 
-                className="flex items-center justify-between w-full text-gray-900 dark:text-white text-lg font-medium focus-visible:outline-none"
+                className="flex items-center justify-between w-full text-gray-900 dark:text-white text-base font-semibold py-1 focus-visible:outline-none"
               >
                 Services <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${mobileServicesOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -5043,23 +5257,23 @@ export default function Navbar() {
                     initial={{ height: 0, opacity: 0 }} 
                     animate={{ height: "auto", opacity: 1 }} 
                     exit={{ height: 0, opacity: 0 }} 
-                    className="flex flex-col space-y-3 mt-4 pl-4 overflow-hidden"
+                    className="flex flex-col space-y-2.5 mt-3 pl-3 overflow-hidden"
                   >
-                    <Link href="/ai-receptionist" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">AI Receptionist</Link>
-                    <Link href="/website-building" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Website Building</Link>
-                    <Link href="/database-reactivation" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Database Reactivation</Link>
+                    <Link href="/ai-receptionist" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">AI Receptionist</Link>
+                    <Link href="/website-building" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">Website Building</Link>
+                    <Link href="/database-reactivation" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">Database Reactivation</Link>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-slate-800">How it Works</Link>
-            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-lg font-medium py-2 border-b border-gray-100 dark:border-slate-800">Contact</Link>
+            <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-base font-semibold py-2 border-b border-gray-100 dark:border-slate-800">How it Works</Link>
+            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-900 dark:text-white text-base font-semibold py-2 border-b border-gray-100 dark:border-slate-800">Contact</Link>
             
             <div className="py-2 border-b border-gray-100 dark:border-slate-800">
               <button 
                 onClick={() => setMobileCompanyOpen(!mobileCompanyOpen)} 
-                className="flex items-center justify-between w-full text-gray-900 dark:text-white text-lg font-medium focus-visible:outline-none"
+                className="flex items-center justify-between w-full text-gray-900 dark:text-white text-base font-semibold py-1 focus-visible:outline-none"
               >
                 Company <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${mobileCompanyOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -5069,21 +5283,21 @@ export default function Navbar() {
                     initial={{ height: 0, opacity: 0 }} 
                     animate={{ height: "auto", opacity: 1 }} 
                     exit={{ height: 0, opacity: 0 }} 
-                    className="flex flex-col space-y-3 mt-4 pl-4 overflow-hidden"
+                    className="flex flex-col space-y-2.5 mt-3 pl-3 overflow-hidden"
                   >
-                    <Link href="/about" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">About Us</Link>
-                    <Link href="/#faq" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Help & Support</Link>
-                    <Link href="/careers" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium">Careers</Link>
+                    <Link href="/about" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">About Us</Link>
+                    <Link href="/#faq" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">Help & Support</Link>
+                    <Link href="/careers" onClick={() => setIsOpen(false)} className="text-gray-600 dark:text-gray-400 font-medium text-sm py-1">Careers</Link>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <div className="pt-4 grid grid-cols-2 gap-3">
+            <div className="pt-3 grid grid-cols-2 gap-3">
               <Link 
                 href={CAL_LINK} 
                 onClick={() => setIsOpen(false)} 
-                className="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white py-3 rounded-xl text-center font-bold text-sm flex items-center justify-center gap-2"
+                className="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white py-3 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5"
               >
                 <Calendar className="w-4 h-4" /> Book Demo
               </Link>
@@ -5092,7 +5306,7 @@ export default function Navbar() {
                 target="_blank" 
                 rel="noopener noreferrer" 
                 onClick={() => setIsOpen(false)} 
-                className="bg-brand-600 text-white py-3 rounded-xl text-center font-bold text-sm shadow-cta"
+                className="bg-brand-600 text-white py-3 rounded-xl text-center font-bold text-xs shadow-cta"
               >
                 Dashboard Portal &rarr;
               </a>
@@ -5101,6 +5315,300 @@ export default function Navbar() {
         )}
       </AnimatePresence>
     </header>
+  );
+}
+</file>
+
+<file path="components/Hero.tsx">
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import {
+  Shield, Server, Activity, ArrowRight, PhoneCall, CheckCircle2, MessageSquare, Clock
+} from "lucide-react";
+import { CAL_LINK, getFadeUpVariants, getStaggerContainer } from "@/lib/utils";
+
+type DemoMode = "call" | "message";
+
+export default function Hero() {
+  const prefersReducedMotion = useReducedMotion();
+  const fadeUp = getFadeUpVariants(prefersReducedMotion);
+  const stagger = getStaggerContainer(prefersReducedMotion);
+
+  const [mode, setMode] = useState<DemoMode>("call");
+  const [seconds, setSeconds] = useState(42);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTimer = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <section className="relative pt-28 sm:pt-32 pb-16 sm:pb-20 overflow-hidden dark:bg-gray-950 transition-colors duration-300">
+      {/* Background Radial Glow Effects */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl -z-10 pointer-events-none">
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] sm:w-[850px] h-[300px] sm:h-[450px] bg-brand-500/15 dark:bg-brand-600/20 blur-[100px] sm:blur-[120px] rounded-full" />
+        <div className="absolute top-40 left-1/4 w-[350px] sm:w-[500px] h-[180px] sm:h-[250px] bg-accent-500/15 dark:bg-accent-600/15 blur-[80px] sm:blur-[100px] rounded-full" />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+          
+          {/* Left Column: Socially Engineered & SEO-Targeted Copywriting */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+            className="lg:col-span-7 space-y-6 sm:space-y-8 text-center lg:text-left"
+          >
+            {/* Core SEO Targeted Headline */}
+            <motion.h1
+              variants={fadeUp}
+              className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-[1.1]"
+            >
+              The 24/7 Voice AI <br className="hidden sm:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-brand-500 to-accent-500 dark:from-brand-400 dark:via-brand-300 dark:to-accent-400">
+                Front Desk for Clinics.
+              </span>
+            </motion.h1>
+
+            {/* Social Proof & Value Prop Paragraph */}
+            <motion.p
+              variants={fadeUp}
+              className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0"
+            >
+              38% of healthcare calls go unanswered. PyrexxAI deploys lifelike AI receptionists that answer every inbound call instantly, verify pricing, and write bookings directly into your EMR.
+            </motion.p>
+
+            {/* High-Contrast Conversion Action Buttons */}
+            <motion.div
+              variants={fadeUp}
+              className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-1"
+            >
+              <Link
+                href={CAL_LINK}
+                className="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-full text-base font-bold transition-all shadow-cta hover:shadow-cta-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-center"
+              >
+                Book a Free Demo &rarr;
+              </Link>
+              <Link
+                href="/dashboard"
+                className="w-full sm:w-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-gray-800 dark:text-gray-200 px-8 py-4 rounded-full text-base font-semibold transition-all text-center flex items-center justify-center gap-2"
+              >
+                Try Live Dashboard
+              </Link>
+            </motion.div>
+
+            {/* Trust Anchors Footer Bar */}
+            <motion.div
+              variants={fadeUp}
+              className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs text-gray-500 dark:text-gray-400 font-medium"
+            >
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>HIPAA Compliant (BAA Provided)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Server className="w-4 h-4 text-brand-500 shrink-0" />
+                <span>Native EMR API Bridges</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>14-Day Deployment</span>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Right Column: Blooio-Inspired iPhone Phone Demo Widget (Scaled for Mobile Viewports) */}
+          <motion.div
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="lg:col-span-5 flex flex-col items-center justify-center relative w-full"
+          >
+            {/* Mode Switcher Pill */}
+            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-gray-200 dark:border-gray-800 p-1.5 rounded-full shadow-lg mb-5 flex gap-1 z-20">
+              <button
+                onClick={() => setMode("call")}
+                className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-bold transition-all ${
+                  mode === "call"
+                    ? "bg-brand-600 text-white shadow-md"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                }`}
+              >
+                <PhoneCall className="w-3.5 h-3.5" /> AI Inbound Call
+              </button>
+              <button
+                onClick={() => setMode("message")}
+                className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-bold transition-all ${
+                  mode === "message"
+                    ? "bg-brand-600 text-white shadow-md"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" /> iMessage Intake
+              </button>
+            </div>
+
+            {/* Apple iPhone Bezel Container with Dynamic Mobile Scaling */}
+            <div className="relative w-[300px] sm:w-[340px] h-[580px] sm:h-[620px] bg-gray-900 dark:bg-black rounded-[3rem] p-2.5 sm:p-3 shadow-2xl border-4 border-gray-800 dark:border-gray-900 ring-1 ring-white/10 transition-all">
+              
+              {/* Screen Shell */}
+              <div className="w-full h-full bg-white dark:bg-[#0A0B0D] rounded-[2.4rem] overflow-hidden relative flex flex-col justify-between border border-gray-200 dark:border-gray-800">
+                
+                {/* Dynamic Island / Notch */}
+                <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-40 pointer-events-none">
+                  <div className="w-26 sm:w-28 h-4 sm:h-5 bg-gray-900 dark:bg-black rounded-b-2xl flex items-center justify-end px-3">
+                    <div className="w-2 h-2 rounded-full bg-brand-500/80 animate-pulse"></div>
+                  </div>
+                </div>
+
+                {/* Top Status Header */}
+                <div className="h-9 px-5 pt-2 flex justify-between items-center text-[10px] font-semibold text-gray-500 dark:text-gray-400 z-30">
+                  <span>9:41</span>
+                  <div className="flex items-center gap-1.5">
+                    <Activity className="w-3 h-3 text-emerald-500" />
+                    <span>5G</span>
+                  </div>
+                </div>
+
+                {/* Screen Dynamic Body */}
+                <div className="flex-1 px-3.5 pt-1 pb-4 overflow-y-auto scrollbar-hide flex flex-col justify-between">
+                  <AnimatePresence mode="wait">
+                    
+                    {/* MODE 1: LIVE VOICE AI CALL */}
+                    {mode === "call" && (
+                      <motion.div
+                        key="call-mode"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex-1 flex flex-col justify-between space-y-3"
+                      >
+                        {/* Call Active Header */}
+                        <div className="text-center pt-1 space-y-0.5">
+                          <div className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-[9px] font-bold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                            Live Voice Agent Active
+                          </div>
+                          <h3 className="text-base font-extrabold text-gray-900 dark:text-white">Luxe Aesthetics</h3>
+                          <p className="text-[10px] text-gray-400 font-mono">{formatTimer(seconds)}</p>
+                        </div>
+
+                        {/* Audio Wave Visualizer */}
+                        <div className="bg-brand-50/50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800/60 rounded-xl p-3 text-center">
+                          <div className="flex justify-center items-center gap-1 h-6 mb-1">
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-3"></span>
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-6"></span>
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-4"></span>
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-7"></span>
+                            <span className="wave-bar text-brand-600 dark:text-brand-400 h-2"></span>
+                          </div>
+                          <span className="text-[9px] font-semibold text-brand-700 dark:text-brand-300">
+                            PyrexxAI Voice Engine HD
+                          </span>
+                        </div>
+
+                        {/* Live Call Transcript Bubble Stream */}
+                        <div className="space-y-2 text-[11px]">
+                          <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-xl rounded-tl-none text-gray-800 dark:text-gray-200">
+                            <p className="font-bold text-[8px] text-gray-500 mb-0.5">Caller (+1 302 ***-1284)</p>
+                            "I'd like to book Botox with Dr. Jenkins next Tuesday at 2 PM."
+                          </div>
+
+                          <div className="bg-brand-600 text-white p-2 rounded-xl rounded-tr-none ml-2">
+                            <p className="font-bold text-[8px] text-brand-200 mb-0.5">PyrexxAI Voice Agent</p>
+                            "Dr. Jenkins has 2:00 PM available! I'll reserve that slot for you now."
+                          </div>
+                        </div>
+
+                        {/* Direct EMR Write Confirmation Notification */}
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-gray-900 dark:text-white">Jane App EMR Synced</p>
+                            <p className="text-[9px] text-gray-500 dark:text-gray-400">Appointment confirmed & written</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* MODE 2: iMESSAGE INTAKE AUTOMATION */}
+                    {mode === "message" && (
+                      <motion.div
+                        key="msg-mode"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex-1 flex flex-col justify-between space-y-2.5"
+                      >
+                        <div className="text-center pt-1 border-b border-gray-100 dark:border-gray-800 pb-1.5">
+                          <div className="w-8 h-8 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center mx-auto text-[10px] shadow-md mb-1">
+                            PX
+                          </div>
+                          <p className="text-xs font-bold text-gray-900 dark:text-white">PyrexxAI iMessage</p>
+                          <p className="text-[9px] text-emerald-500 font-semibold">Sub-60s Auto Reply</p>
+                        </div>
+
+                        <div className="space-y-2 text-[11px] flex-1 overflow-y-auto">
+                          <div className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white p-2 rounded-xl rounded-bl-none max-w-[85%]">
+                            Hi, what is the price for dermal fillers?
+                          </div>
+
+                          <div className="bg-brand-600 text-white p-2 rounded-xl rounded-br-none ml-auto max-w-[88%] shadow-sm">
+                            Hello! Dermal fillers start at $650/syringe. Would you like to check Dr. Jenkins' open slots?
+                          </div>
+
+                          <div className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white p-2 rounded-xl rounded-bl-none max-w-[85%]">
+                            Yes please, Thursday afternoon works!
+                          </div>
+
+                          <div className="bg-brand-600 text-white p-2 rounded-xl rounded-br-none ml-auto max-w-[88%] shadow-sm">
+                            Reserved FOR Thursday at 3:30 PM!
+                          </div>
+                        </div>
+
+                        <div className="bg-gray-100 dark:bg-gray-800 p-1.5 rounded-full flex items-center justify-between text-[10px] text-gray-400 px-3">
+                          <span>iMessage</span>
+                          <span className="w-4 h-4 rounded-full bg-brand-600 text-white flex items-center justify-center text-[9px]">↑</span>
+                        </div>
+                      </motion.div>
+                    )}
+
+                  </AnimatePresence>
+                </div>
+
+                {/* Bottom Home Indicator Bar */}
+                <div className="h-3 flex justify-center items-center pb-1">
+                  <div className="w-24 h-1 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Floating Live Badge Overlay */}
+            <div className="absolute -bottom-3 sm:-bottom-4 right-1 sm:-right-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-3 rounded-2xl shadow-xl flex items-center gap-2.5 z-30">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
+              <div>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">100% HIPAA Verified</p>
+                <p className="text-[9px] text-gray-500">Zero PHI Stored Post-Call</p>
+              </div>
+            </div>
+          </motion.div>
+
+        </div>
+      </div>
+    </section>
   );
 }
 </file>
@@ -5120,6 +5628,7 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  preload: true,
 });
 
 export const viewport: Viewport = {
@@ -5162,7 +5671,8 @@ export const metadata: Metadata = {
     "automated appointment booking clinic",
     "AI lead intake medical practice",
     "24/7 AI phone answering medspa",
-    "voice AI for therapy clinic",
+    "Jane App AI integration",
+    "Boulevard EMR AI voice agent"
   ],
   authors: [{ name: "PyrexxAI" }],
   creator: "PyrexxAI",
@@ -5176,7 +5686,7 @@ export const metadata: Metadata = {
       "Stop losing Revenue to missed calls. PyrexxAI deploys fully custom AI receptionists for MedSpas, dental, and therapy clinics — HIPAA-compliant, live in 14 days.",
     images: [
       {
-        url: "/og-image.png",
+        url: "https://pyrexxai.com/api/og?title=AI%20Voice%20Receptionist%20for%20Clinics",
         width: 1200,
         height: 630,
         alt: "PyrexxAI — AI Voice Receptionists for Healthcare Clinics",
@@ -5188,7 +5698,7 @@ export const metadata: Metadata = {
     title: "PyrexxAI — AI Receptionists for MedSpas & Clinics",
     description:
       "Custom AI voice agents that answer every call, book appointments 24/7, and integrate with your EMR. HIPAA-compliant. Live in 14 days.",
-    images: ["/og-image.png"],
+    images: ["https://pyrexxai.com/api/og?title=AI%20Voice%20Receptionist%20for%20Clinics"],
     creator: "@pyrexxai",
   },
   robots: {
@@ -5212,6 +5722,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Expanded Schema with Wikidata Entity Interlinking (E-E-A-T & GEO)
   const orgSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -5236,180 +5747,28 @@ export default function RootLayout({
     },
   };
 
-  const websiteSchema = {
+  const softwareSchema = {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "PyrexxAI",
-    url: "https://pyrexxai.com",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://pyrexxai.com/?q={search_term_string}",
-      "query-input": "required name=search_term_string"
+    "@type": "SoftwareApplication",
+    name: "PyrexxAI Voice Receptionist Engine",
+    operatingSystem: "Cloud / Web",
+    applicationCategory: "HealthApplication",
+    sameAs: [
+      "https://www.wikidata.org/wiki/Q356350", // HIPAA
+      "https://www.wikidata.org/wiki/Q1140323" // Electronic Health Record
+    ],
+    offers: {
+      "@type": "Offer",
+      price: "1500.00",
+      priceCurrency: "USD"
     }
-  };
-
-  const serviceSchema = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    serviceType: "AI Voice Receptionist & Lead Intake Automation",
-    provider: {
-      "@type": "Organization",
-      name: "PyrexxAI",
-    },
-    areaServed: "US",
-    description:
-      "Custom-trained AI voice agents for MedSpas, dental clinics, and therapy practices. Handles inbound calls, books appointments, qualifies leads, and integrates with EMR systems — HIPAA-compliant.",
-    hasOfferCatalog: {
-      "@type": "OfferCatalog",
-      name: "PyrexxAI Services",
-      itemListElement: [
-        {
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: "AI Receptionist",
-            description: "24/7 inbound call handling, appointment booking, and direct EMR integration for healthcare clinics."
-          },
-        },
-        {
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: "AI Lead Intake Specialist",
-            description: "Automated SMS, web chat, and social lead qualification and booking for MedSpas and clinics."
-          },
-        },
-      ],
-    },
-  };
-
-  const howToSchema = {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: "How PyrexxAI Deploys Your AI Receptionist",
-    description: "From kickoff to live AI receptionist in under 14 days.",
-    step: [
-      {
-        "@type": "HowToStep",
-        name: "Connect",
-        text: "We integrate securely with your existing EMR, phone system, and CRM.",
-      },
-      {
-        "@type": "HowToStep",
-        name: "Train",
-        text: "We train your AI agent on your clinic's FAQs, pricing, tone, and procedures.",
-      },
-      {
-        "@type": "HowToStep",
-        name: "Deploy",
-        text: "Your AI agent goes live — answering calls, booking appointments, and qualifying leads 24/7.",
-      },
-      {
-        "@type": "HowToStep",
-        name: "Optimize",
-        text: "We monitor performance and continuously improve your agent's accuracy and conversion rate.",
-      },
-    ],
-  };
-
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "What types of clinics does PyrexxAI work with?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "MedSpas, dental practices, and therapeutic or mental health clinics. We specialize in high-ticket, high-touch healthcare environments where missing a call means losing significant revenue.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How is PyrexxAI different from a general AI chatbot?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "We are a full-service technical partner, not a DIY software platform. We custom-train voice AI specific to your practice, integrate it directly with your existing EMR, and continually optimize its performance."
-        }
-      },
-      {
-        "@type": "Question",
-        name: "Is your AI voice agent HIPAA compliant?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes, absolutely. Our entire architecture is HIPAA compliant by design. We provide a Business Associate Agreement (BAA) and ensure zero Protected Health Information (PHI) is stored beyond the active session.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How long does it take to go live?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "From our initial kickoff call to your AI receptionist handling live patient calls, the standard timeline is exactly 14 days. This includes mapping your workflows, voice training, and EMR integration."
-        }
-      },
-      {
-        "@type": "Question",
-        name: "Does the AI book directly into my EMR/practice management system?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. We build custom integrations to read your real-time availability and write appointments directly into your existing schedule. No manual data entry is required from your staff."
-        }
-      },
-      {
-        "@type": "Question",
-        name: "What happens if the AI can't answer a patient's question?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "If a query falls outside the AI's training or involves a complex medical question, it elegantly escalates the interaction. It takes a detailed message and immediately routes it to your human staff via SMS, email, or your CRM."
-        }
-      },
-      {
-        "@type": "Question",
-        name: "How does PyrexxAI handle after-hours emergencies?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "We configure custom routing rules for your practice. Routine inquiries are answered and booked, while calls flagged by the caller as medical emergencies are immediately forwarded to your designated on-call doctor."
-        }
-      },
-      {
-        "@type": "Question",
-        name: "What is the pricing model?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "We operate on a transparent monthly retainer that includes the AI infrastructure, continuous optimization, and support. Pricing is custom-quoted based on your clinic's call volume and EMR complexity. Because we replace expensive after-hours services and capture lost leads, most clinics see positive ROI in the first 30 days."
-        }
-      },
-      {
-        "@type": "Question",
-        name: "Can the AI handle multiple calls simultaneously?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. Your PyrexxAI receptionist can handle an unlimited number of concurrent inbound calls. Whether you receive two calls at once or fifty, no patient is ever put on hold or sent to voicemail."
-        }
-      },
-      {
-        "@type": "Question",
-        name: "Do I need to change my existing phone number or system?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "No. You keep your current phone numbers and VOIP system. We simply set up conditional forwarding so that missed calls, or calls during specific hours, are instantly routed to your AI agent."
-        }
-      }
-    ],
   };
 
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://cal.com" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }} />
       </head>
       <body className={`${inter.variable} font-sans antialiased text-gray-900 bg-white dark:bg-[#0B0F17] dark:text-gray-50 transition-colors duration-300`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
@@ -5417,7 +5776,7 @@ export default function RootLayout({
           <AIAssistant />
           {children}
           <Analytics />
-					<SpeedInsights />
+          <SpeedInsights />
           <CookieBanner />
         </ThemeProvider>
       </body>

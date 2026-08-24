@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+    <main className="min-h-screen bg-gray-50 dark:bg-[#0B0F17] text-gray-900 dark:text-gray-50 transition-colors duration-300">
       <Navbar />
-      
+
       <section className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6">
@@ -57,9 +57,9 @@ export default function ContactPage() {
                 <li className="flex items-start">
                   <MessageSquare className="w-6 h-6 text-brand-600 dark:text-brand-400 mr-4 flex-shrink-0" />
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">Live Demo</h4>
-                    <a href={CAL_LINK} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-                      Schedule via Cal.com
+                    <h4 className="font-semibold text-gray-900 dark:text-white">Live Discovery Demo</h4>
+                    <a href={CAL_LINK} className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                      Schedule 15-Minute Session
                     </a>
                   </div>
                 </li>
@@ -68,7 +68,7 @@ export default function ContactPage() {
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white">Headquarters</h4>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Serving Medical Clinics & MedSpas Nationwide
+                      Serving Medical Clinics & MedSpas Nationwide (Delaware Incorporated)
                     </p>
                   </div>
                 </li>
@@ -81,7 +81,7 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-      
+
       <Footer />
     </main>
   );

@@ -6,7 +6,7 @@ import { ShieldCheck, Server, Clock } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Book a Discovery Call | PyrexxAI",
-  description: "Schedule a free demo with PyrexxAI. Discover how our custom AI voice receptionists can eliminate missed calls and integrate directly with your EMR.",
+  description: "Schedule a free demo with PyrexxAI. Discover how our custom AI voice receptionists eliminate missed calls and integrate directly with your clinical EMR.",
   alternates: {
     canonical: "https://pyrexxai.com/book-demo",
   },
@@ -14,13 +14,12 @@ export const metadata: Metadata = {
 
 export default function BookDemoPage() {
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300">
+    <main className="min-h-screen bg-gray-50 dark:bg-[#0B0F17] text-gray-900 dark:text-gray-50 transition-colors duration-300">
       <Navbar />
-      
+
       <section className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          
-          <div className="space-y-8 lg:mt-10">
+          <div className="space-y-8 lg:mt-6">
             <div>
               <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6">
                 Let's modernize your <br className="hidden lg:block" />
@@ -35,16 +34,18 @@ export default function BookDemoPage() {
 
             <div className="space-y-6 bg-white dark:bg-gray-900 p-8 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm">
               <h3 className="font-bold text-gray-900 dark:text-white text-lg border-b border-gray-100 dark:border-gray-800 pb-4">
-                What to expect:
+                What to expect on your discovery call:
               </h3>
-              
+
               <div className="flex items-start">
                 <div className="w-10 h-10 bg-brand-50 dark:bg-brand-900/30 rounded-xl flex items-center justify-center shrink-0 mr-4">
                   <Server className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white mb-1">Custom Architecture Map</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">We outline exactly how PyrexxAI connects to your specific booking system.</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    We outline exactly how PyrexxAI connects to your specific scheduling software (Jane App, Boulevard, Mindbody).
+                  </p>
                 </div>
               </div>
 
@@ -54,7 +55,9 @@ export default function BookDemoPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white mb-1">HIPAA Compliance Review</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">We walk you through our BAA process and end-to-end data encryption standards.</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    We walk you through our BAA process, zero AI foundation model training policy, and end-to-end data encryption.
+                  </p>
                 </div>
               </div>
 
@@ -64,7 +67,9 @@ export default function BookDemoPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white mb-1">14-Day Launch Protocol</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">If we are a good fit, we can have your custom voice agent live and taking calls in 14 days.</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    If we are a good fit, we will have your custom voice agent live and taking calls in 14 business days.
+                  </p>
                 </div>
               </div>
             </div>
@@ -73,10 +78,9 @@ export default function BookDemoPage() {
           <div className="w-full relative z-10">
             <CalEmbed />
           </div>
-
         </div>
       </section>
-      
+
       <Footer />
     </main>
   );

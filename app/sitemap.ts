@@ -78,11 +78,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // Programmatic pSEO routes
   const pseoSlugs = [
     "jane-app-medspa",
     "boulevard-aesthetics",
-    "mindbody-dental"
+    "mindbody-dental",
   ];
 
   const pseoPages: MetadataRoute.Sitemap = pseoSlugs.map((slug) => ({

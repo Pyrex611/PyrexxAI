@@ -2,7 +2,7 @@ import React from "react";
 
 export default function StatsBar() {
   return (
-    <section className="py-12 border-y border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 transition-colors duration-300">
+    <section className="py-12 border-y border-gray-100 dark:border-gray-800 bg-white dark:bg-[#0B0F17] transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-transparent md:divide-gray-100 dark:md:divide-gray-800">
           <div className="text-center md:text-left px-4">

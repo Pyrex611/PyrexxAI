@@ -5,8 +5,8 @@ import CookieBanner from "@/components/CookieBanner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import "./globals.css";
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,7 +18,7 @@ const inter = Inter({
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0B0F17" }, 
+    { media: "(prefers-color-scheme: dark)", color: "#0B0F17" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -35,12 +35,10 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" }
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
     ],
     shortcut: "/favicon.ico",
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }
-    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   manifest: "/site.webmanifest",
   appleWebApp: {
@@ -56,7 +54,7 @@ export const metadata: Metadata = {
     "AI lead intake medical practice",
     "24/7 AI phone answering medspa",
     "Jane App AI integration",
-    "Boulevard EMR AI voice agent"
+    "Boulevard EMR AI voice agent",
   ],
   authors: [{ name: "PyrexxAI" }],
   creator: "PyrexxAI",
@@ -67,7 +65,7 @@ export const metadata: Metadata = {
     siteName: "PyrexxAI",
     title: "PyrexxAI — AI Voice Receptionists That Never Miss a Patient Call",
     description:
-      "Stop losing Revenue to missed calls. PyrexxAI deploys fully custom AI receptionists for MedSpas, dental, and therapy clinics — HIPAA-compliant, live in 14 days.",
+      "Stop losing revenue to missed calls. PyrexxAI deploys fully custom AI receptionists for MedSpas, dental, and therapy clinics — HIPAA-compliant, live in 14 days.",
     images: [
       {
         url: "https://pyrexxai.com/api/og?title=AI%20Voice%20Receptionist%20for%20Clinics",
@@ -106,7 +104,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Expanded Schema with Wikidata Entity Interlinking (E-E-A-T & GEO)
   const orgSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -116,10 +113,10 @@ export default function RootLayout({
     sameAs: [
       "https://github.com/PyrexxAI",
       "https://linkedin.com/company/pyrexxai",
-      "https://twitter.com/pyrexxai",
+      "https://x.com/pyrexxai",
       "https://instagram.com/pyrexxai",
       "https://facebook.com/pyrexxai",
-      "https://youtube.com/@pyrexxai"
+      "https://youtube.com/@pyrexxai",
     ],
     contactPoint: {
       "@type": "ContactPoint",
@@ -127,7 +124,7 @@ export default function RootLayout({
       telephone: "+13023376310",
       contactType: "sales",
       availableLanguage: "English",
-      areaServed: "US"
+      areaServed: "US",
     },
   };
 
@@ -138,24 +135,28 @@ export default function RootLayout({
     operatingSystem: "Cloud / Web",
     applicationCategory: "HealthApplication",
     sameAs: [
-      "https://www.wikidata.org/wiki/Q356350", // HIPAA
-      "https://www.wikidata.org/wiki/Q1140323" // Electronic Health Record
+      "https://www.wikidata.org/wiki/Q356350",
+      "https://www.wikidata.org/wiki/Q1140323",
     ],
     offers: {
       "@type": "Offer",
       price: "1500.00",
-      priceCurrency: "USD"
-    }
+      priceCurrency: "USD",
+    },
   };
 
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
-      <head>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }} />
-      </head>
       <body className={`${inter.variable} font-sans antialiased text-gray-900 bg-white dark:bg-[#0B0F17] dark:text-gray-50 transition-colors duration-300`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+          />
           <Toaster position="bottom-right" richColors />
           <AIAssistant />
           {children}

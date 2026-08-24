@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Bot } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +14,7 @@ type Message = {
 const defaultMessage: Message = {
   id: "1",
   role: "ai",
-  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant. Ask me anything about our EMR integrations, HIPAA compliance, or pricing setup!",
+  content: "Hi there! 👋 I'm the PyrexxAI virtual assistant. Ask me anything about our AI front desk and EMR integrations!",
 };
 
 const SUGGESTION_CHIPS = [
@@ -29,8 +29,9 @@ export default function AIAssistant() {
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [mounted, setMounted] = useState(false);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -38,7 +39,7 @@ export default function AIAssistant() {
     if (savedMessages) {
       try {
         setMessages(JSON.parse(savedMessages));
-      } catch (e) {
+      } catch {
         setMessages([defaultMessage]);
       }
     } else {
@@ -52,41 +53,54 @@ export default function AIAssistant() {
     }
   }, [messages, mounted]);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
-    if (isOpen) scrollToBottom();
-  }, [messages, isOpen, isTyping]);
+    if (isOpen) {
+      scrollToBottom();
+      inputRef.current?.focus();
+    }
+  }, [messages, isOpen, isTyping, scrollToBottom]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   const renderMessageContent = (text: string, role: "ai" | "user") => {
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     const boldRegex = /\*\*([^*]+)\*\*/g;
-    
-    const processedText = text.replace(boldRegex, "<strong>$1</strong>");
 
+    const processedText = text.replace(boldRegex, "<strong>$1</strong>");
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
     while ((match = linkRegex.exec(processedText)) !== null) {
-      const [fullMatch, linkText, linkUrl] = match;
+      const [, linkText, linkUrl] = match;
       const index = match.index;
 
       if (index > lastIndex) {
         parts.push(
-          <span 
-            key={`text-${index}`} 
-            dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex, index) }} 
+          <span
+            key={`text-${index}`}
+            dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex, index) }}
           />
         );
       }
 
       const isExternal = linkUrl.startsWith("http") || linkUrl.startsWith("https");
-      const linkClass = role === "user" 
-        ? "text-white underline font-bold hover:text-brand-100" 
-        : "text-brand-600 dark:text-brand-400 underline font-bold hover:text-brand-700 dark:hover:text-brand-300";
+      const linkClass =
+        role === "user"
+          ? "text-white underline font-bold hover:text-brand-100"
+          : "text-brand-600 dark:text-brand-400 underline font-bold hover:text-brand-700 dark:hover:text-brand-300";
 
       if (isExternal) {
         parts.push(
@@ -107,9 +121,9 @@ export default function AIAssistant() {
 
     if (lastIndex < processedText.length) {
       parts.push(
-        <span 
-          key="text-end" 
-          dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex) }} 
+        <span
+          key="text-end"
+          dangerouslySetInnerHTML={{ __html: processedText.substring(lastIndex) }}
         />
       );
     }
@@ -135,8 +149,19 @@ export default function AIAssistant() {
         body: JSON.stringify({ messages: updatedMessages }),
       });
 
-      if (!res.ok || !res.body) {
-        throw new Error("API streaming error");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ content: null }));
+        const fallbackContent =
+          errorData.content || "I'm having trouble connecting. Please [book a free demo](/book-demo) directly!";
+        setMessages((prev) => [
+          ...prev,
+          { id: (Date.now() + 1).toString(), role: "ai", content: fallbackContent },
+        ]);
+        return;
+      }
+
+      if (!res.body) {
+        throw new Error("Missing response stream");
       }
 
       const reader = res.body.getReader();
@@ -153,18 +178,17 @@ export default function AIAssistant() {
         streamText += chunk;
 
         setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === aiMsgId ? { ...msg, content: streamText } : msg
-          )
+          prev.map((msg) => (msg.id === aiMsgId ? { ...msg, content: streamText } : msg))
         );
       }
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "ai",
-          content: "I'm having trouble connecting to the server. Please [book a free demo](/book-demo) to speak with our team!",
+          content:
+            "I'm having trouble connecting to the network right now. Please [book a free demo](/book-demo) directly to speak with our engineering team!",
         },
       ]);
     } finally {
@@ -174,7 +198,7 @@ export default function AIAssistant() {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isTyping) return;
     const query = inputValue;
     setInputValue("");
     executeSendMessage(query);
@@ -190,7 +214,7 @@ export default function AIAssistant() {
             key="pyrexxai-chat-window"
             role="dialog"
             aria-modal="true"
-            aria-label="PyrexxAI Virtual Assistant"
+            aria-label="PyrexxAI Virtual Assistant Chat"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -205,7 +229,7 @@ export default function AIAssistant() {
                 <div>
                   <h3 className="font-semibold text-sm">PyrexxAI Assistant</h3>
                   <div className="flex items-center space-x-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-xs text-brand-100">Live AI Agent</span>
                   </div>
                 </div>
@@ -222,7 +246,13 @@ export default function AIAssistant() {
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gray-50 dark:bg-gray-900/50">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed ${msg.role === "user" ? "bg-brand-600 text-white rounded-br-none" : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-bl-none shadow-sm"}`}>
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed ${
+                      msg.role === "user"
+                        ? "bg-brand-600 text-white rounded-br-none"
+                        : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-bl-none shadow-sm"
+                    }`}
+                  >
                     {renderMessageContent(msg.content, msg.role)}
                   </div>
                 </div>
@@ -230,9 +260,9 @@ export default function AIAssistant() {
               {isTyping && (
                 <div className="flex justify-start">
                   <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-bl-none px-4 py-3.5 shadow-sm flex items-center space-x-1.5">
-                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "0ms" }}></span>
-                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "150ms" }}></span>
-                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "300ms" }}></span>
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               )}
@@ -257,6 +287,7 @@ export default function AIAssistant() {
               <div className="relative flex items-center">
                 <label htmlFor="chat-input" className="sr-only">Type your message to the AI assistant</label>
                 <input
+                  ref={inputRef}
                   id="chat-input"
                   type="text"
                   value={inputValue}
@@ -266,7 +297,7 @@ export default function AIAssistant() {
                 />
                 <button
                   type="submit"
-                  disabled={!inputValue.trim()}
+                  disabled={!inputValue.trim() || isTyping}
                   className="absolute right-1.5 w-7 h-7 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 dark:disabled:bg-gray-700 text-white rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                   aria-label="Send message"
                 >
@@ -286,7 +317,7 @@ export default function AIAssistant() {
       >
         {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />}
         {!isOpen && (
-          <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white dark:border-gray-950 rounded-full"></span>
+          <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white dark:border-gray-950 rounded-full" />
         )}
       </button>
     </div>
