@@ -19,22 +19,26 @@ export async function submitBookingAction(payload: BookingPayload): Promise<{
   message?: string;
 }> {
   try {
+    if (!payload || typeof payload !== "object") {
+      return { success: false, message: "Invalid booking payload." };
+    }
+
     const {
-      name,
-      email,
-      clinic,
-      phone,
+      name = "",
+      email = "",
+      clinic = "",
+      phone = "",
       emr = "Jane App",
       callVolume = "100-500",
-      slotTime,
+      slotTime = "",
       timezone = "America/New_York",
     } = payload;
 
-    if (!name || !email || !slotTime) {
+    if (!name.trim() || !email.trim() || !slotTime.trim()) {
       return { success: false, message: "Missing required booking details (name, email, or time slot)." };
     }
 
-    // Step 1: Record Lead into Supabase (Zero Lost Leads Guarantee)
+    // Step 1: Persist lead to Supabase (Zero Lost Leads Guarantee)
     await persistLead({
       name: name.trim(),
       email: email.trim().toLowerCase(),
@@ -48,7 +52,7 @@ export async function submitBookingAction(payload: BookingPayload): Promise<{
 
     let calBookingId = `px-book-${Date.now()}`;
 
-    // Step 2: Dispatch to Cal.com API v2 if server keys are present
+    // Step 2: Forward to Cal.com API v2 if server keys are present
     const calApiKey = process.env.CAL_API_KEY;
     const eventTypeId = process.env.CAL_EVENT_TYPE_ID;
 
@@ -58,7 +62,7 @@ export async function submitBookingAction(payload: BookingPayload): Promise<{
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${calApiKey}`,
+            Authorization: `Bearer ${calApiKey.trim()}`,
             "cal-api-version": "2024-08-13",
           },
           body: JSON.stringify({
@@ -79,11 +83,11 @@ export async function submitBookingAction(payload: BookingPayload): Promise<{
           calBookingId = calData?.data?.id || calBookingId;
         }
       } catch (err) {
-        console.error("Cal.com v2 upstream API reservation warning:", err);
+        console.warn("Cal.com API reservation warning (gracefully caught):", err);
       }
     }
 
-    // Step 3: Record Booking row in Supabase
+    // Step 3: Record confirmed booking in Supabase
     await persistBooking({
       lead_name: name.trim(),
       lead_email: email.trim().toLowerCase(),

@@ -10,19 +10,32 @@ export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  async function clientAction(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (isPending || !formRef.current) return;
+
     setIsPending(true);
-    const result = await submitContactForm(null, formData);
+    const formData = new FormData(formRef.current);
 
-    if (result.success) {
-      toast.success("Inquiry Submitted", { description: result.message });
-      setSubmitted(true);
-      formRef.current?.reset();
-    } else {
-      toast.error("Submission Failed", { description: result.message });
+    try {
+      const result = await submitContactForm(formData);
+
+      if (result && result.success) {
+        toast.success("Inquiry Submitted", { description: result.message });
+        setSubmitted(true);
+        formRef.current.reset();
+      } else {
+        toast.error("Submission Failed", {
+          description: result?.message || "Please check your information and try again.",
+        });
+      }
+    } catch {
+      toast.error("Submission Error", {
+        description: "Network connection issue. Please try again or book a call directly.",
+      });
+    } finally {
+      setIsPending(false);
     }
-
-    setIsPending(false);
   }
 
   if (submitted) {
@@ -49,7 +62,7 @@ export default function ContactForm() {
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm">
-      <form ref={formRef} action={clientAction} className="space-y-6">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
         <input
           type="text"
           name="website"
