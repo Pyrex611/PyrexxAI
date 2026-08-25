@@ -33,13 +33,14 @@ export async function GET(req: Request) {
           return NextResponse.json({ date: dateParam, slots });
         }
       } catch (err) {
-        console.error("Cal.com v2 upstream API fallback triggered:", err);
+        console.error("Cal.com v2 upstream slot fetching fallback:", err);
       }
     }
 
+    // Dynamic Default Schedule (9:00 AM - 4:30 PM EST)
     const baseHours = ["09:00", "10:30", "11:30", "13:00", "14:30", "15:30", "16:30"];
     const dayOfWeek = new Date(dateParam).getDay();
-    const availableSlots = (dayOfWeek === 0 || dayOfWeek === 6) ? [] : baseHours;
+    const availableSlots = dayOfWeek === 0 || dayOfWeek === 6 ? [] : baseHours;
 
     return NextResponse.json({
       date: dateParam,

@@ -17,6 +17,7 @@ import {
   Layers,
 } from "lucide-react";
 import { toast } from "sonner";
+import { submitBookingAction } from "@/app/actions/booking";
 
 export default function CalEmbed() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -103,23 +104,19 @@ export default function CalEmbed() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/calendar/book", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          slotTime: `${selectedDate}T${selectedSlot}:00`,
-        }),
+      // Direct Next.js Server Action invocation (immune to 404 route errors)
+      const result = await submitBookingAction({
+        ...formData,
+        slotTime: `${selectedDate}T${selectedSlot}:00`,
       });
 
-      const json = await res.json();
-      if (json.success) {
+      if (result.success) {
         setStep(3);
         toast.success("Discovery Call Reserved", {
           description: "Calendar invitation and Google Meet details dispatched.",
         });
       } else {
-        toast.error("Booking Error", { description: json.message || "Please try again." });
+        toast.error("Booking Error", { description: result.message || "Please try again." });
       }
     } catch {
       toast.error("Network error. Please try again.");
